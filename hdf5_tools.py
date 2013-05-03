@@ -39,4 +39,5 @@ def export_touchstone_s1p(hd5file, group, filename):
     freqs = get_freqs(hd5file)
     for i, f in enumerate(freqs):
         s1pfile.write(str(f/1e9) + '\t' + str(real(s11[i])) + '\t' + str(imag(s11[i])) + '\n')
-
+    
+    s1pfile.close()
