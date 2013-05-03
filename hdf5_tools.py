@@ -18,10 +18,8 @@ def get_fidx(hd5file, freq):
 
     return fidx
 
-def get_freqs(hd5filename):
-    hd5file = h5py.File(hd5filename, 'r')     
+def get_freqs(hd5file):
     freqs = hd5file['frequencysweep'][:]
-    hd5file.close()
     return freqs
 
 # sorts one array by another array
@@ -30,3 +28,17 @@ def get_freqs(hd5filename):
 def sort_by_array(sortarray, array):
     inds = numpy.argsort(sortarray)
     return numpy.take(array, inds)
+
+def export_touchstone_s1p(hd5file, group, filename):
+    s1pfile = open(filename + 's1p')
+
+    s11 = hd5file[group][:]
+
+    file.write('! s1p file attempt')
+    
+    file.write('# HZ S RI R 50')
+    file.write('! freq re(s11) im(s11)')
+    freqs = get_freqs(hd5file)
+    for i, f in enumerate(freqs):
+        file.write(str(f/1e9) + '\t' + str(re(s11[i])) + '\t' + str(im(s11[i])))
+     
