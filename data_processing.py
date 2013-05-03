@@ -1,9 +1,10 @@
 # jon klein, jtklein@alaska.edu
 # functions to process data from antenna rotator
 
+from hdf5_tools import *
 from pylab import  *
-import h5py, csv
 
+import h5py, csv
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
@@ -34,13 +35,14 @@ def get_radpattern(hd5file, subgroup, freq, rot):
     return {'gain':gain, 'theta':theta, 'phi':phi}
 
 # saves a csv of a radiation pattern
-# [ theta , re , im ] 
+# [ theta , gain] 
 def save_radpattern_csv(pattern, filename):
-    with open(filename + '.csv') csvfile:
+    with open(filename + '.csv', 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(['theta', 'gain_db']
-        for i, theta in enumerate(pattern['theta']):
-            writer.writerow([theta, pattern['gain'][i])
+        writer.writerow(['theta', 'gain_db'])
+        gain = pattern['gain']
+        for (i, theta) in enumerate(pattern['theta']):
+            writer.writerow([theta, gain[i]])
 
 
 # quite inefficent.. 
@@ -62,7 +64,7 @@ def get_axialratio(hd5file, subgroup, freq, pan, tilt):
     for pos in hd5file[subgroup].keys():
         dset = subgroup + '/' + pos
         if float(hd5file[dset].attrs['pan']) == pan and float(hd5file[dset].attrs['tilt']) == tilt:
-            if float(hd5file[dset].attrs['roll']) == (max_pos + 90) or float(hd5file[dset].attrs['roll']) == (max_po
+            if float(hd5file[dset].attrs['roll']) == (max_pos + 90) or float(hd5file[dset].attrs['roll']) == (max_pos - 90):
                 g = 20*log10(abs(hd5file[dset][fidx]))
                 ratio = max_gain - g
                 break
@@ -86,4 +88,9 @@ def get_magphase_pan(hd5file, subgroup, freq):
             mag = mag + [m]
 
     return {'mag':mag, 'theta':theta}
+
+if __name__ == '__main__':
+    h5f = h5py.File('e_only.hdf5')
+    pat = get_radpattern(h5f, 'e/pattern_characterization', 2.45e18, 0)
+    save_radpattern_csv(pat, 'testcsv')
 
