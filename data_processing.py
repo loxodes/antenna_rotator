@@ -2,7 +2,7 @@
 # functions to process data from antenna rotator
 
 from pylab import  *
-import h5py
+import h5py, csv
 
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
@@ -32,6 +32,16 @@ def get_radpattern(hd5file, subgroup, freq, rot):
     phi = sort_by_array(theta,phi)
     theta.sort()
     return {'gain':gain, 'theta':theta, 'phi':phi}
+
+# saves a csv of a radiation pattern
+# [ theta , re , im ] 
+def save_radpattern_csv(pattern, filename):
+    with open(filename + '.csv') csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(['theta', 'gain_db']
+        for i, theta in enumerate(pattern['theta']):
+            writer.writerow([theta, pattern['gain'][i])
+
 
 # quite inefficent.. 
 def get_axialratio(hd5file, subgroup, freq, pan, tilt):

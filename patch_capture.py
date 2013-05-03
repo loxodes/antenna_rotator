@@ -1,7 +1,9 @@
 # jon klein, jtklein@alaska.edu
 # mit license
 # measures s11 and E and H radiation pattern at resonance of patch antenna 
-
+# saves result as hdf5 file, images of E and H radiation patterns
+# saves s11 file as s1p, saves E and F with pan at resonance as csv 
+#
 from pylab import *
 from vna_control import *
 from rotator_control import *
@@ -51,15 +53,20 @@ if __name__ == "__main__":
     sweep_antenna(PAN_STOPS, TILT_STOPS, ROLL_STOPS, hd5file, vna, GROUP_S21)
     print 'sweeping array to find radiation pattern'
 
-    # find index of resonant frequency of s11 
-    s11 = re_to_db(hd5file[GROUP_S11])
+    # find index of resonant frequency of s11
+    s11 = re_to_db(hd5file[GROUP_S11][:])
     s11_minidx = s11.index(min(s11))
     f_center = hd5file['freqs'][s11_minidx]
     
-    # plot radiation pattern at this frequency for E and H
-    e_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
-    h_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 90)
+    # export s11 as s1p
+    export_touchstone_s1p(hd5file, GROUP_S11, 'antenna_s11')
 
+    # plot radiation pattern at this frequency for E and H
+    rot0_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
+    rot90_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 90)
+    
+    save_radpattern_csv(rot0_pattern, 'rot0')
+    save_radpattern_csv(rot90_pattern, 'rot90')
     pdb.set_trace() 
 
     # set up plot
@@ -71,8 +78,8 @@ if __name__ == "__main__":
 
     axis([-90,90,-60,-5])
     
-    plot(e_pattern['theta'],e_pattern['gain'])
-    plot(h_pattern['theta'],h_pattern['gain'])
+    plot(rot0_pattern['theta'],rot0_pattern['gain'])
+    plot(rot90_pattern['theta'],rot90_pattern['gain'])
 
 
     title('measured and simulated |S21| of two element array at ' + str(TESTFREQ/1e18) + 'GHz steered to ')
@@ -85,3 +92,4 @@ if __name__ == "__main__":
     show()
 
     hd5file.close()
+
