@@ -1,9 +1,7 @@
 import h5py
 import numpy
+from pylab import *
 
-GROUP_ATT = '/att_characterization'
-GROUP_PHASE = '/phase_characterization'
-GROUP_RADPAT = '/pattern_characterization'
 F_SCALE = 1e18
 
 # gets the index of a frequency closed to one from an hdf5 file
@@ -30,15 +28,15 @@ def sort_by_array(sortarray, array):
     return numpy.take(array, inds)
 
 def export_touchstone_s1p(hd5file, group, filename):
-    s1pfile = open(filename + 's1p')
+    s1pfile = open(filename + '.s1p', 'w')
 
     s11 = hd5file[group][:]
 
-    file.write('! s1p file attempt')
+    s1pfile.write('! s1p file attempt\n')
     
-    file.write('# HZ S RI R 50')
-    file.write('! freq re(s11) im(s11)')
+    s1pfile.write('# HZ S RI R 50\n')
+    s1pfile.write('! freq re(s11) im(s11)\n')
     freqs = get_freqs(hd5file)
     for i, f in enumerate(freqs):
-        file.write(str(f/1e9) + '\t' + str(re(s11[i])) + '\t' + str(im(s11[i])))
-     
+        s1pfile.write(str(f/1e9) + '\t' + str(real(s11[i])) + '\t' + str(imag(s11[i])) + '\n')
+
