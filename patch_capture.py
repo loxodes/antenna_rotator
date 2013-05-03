@@ -3,7 +3,7 @@
 # measures s11 and E and H radiation pattern at resonance of patch antenna 
 # saves result as hdf5 file, images of E and H radiation patterns
 # saves s11 file as s1p, saves E and F with pan at resonance as csv 
-#
+
 from pylab import *
 from vna_control import *
 from rotator_control import *
@@ -54,7 +54,7 @@ if __name__ == "__main__":
     print 'init complete, measuring S11'
     measure_antenna(hd5file, GROUP_S11, '', vna, 0, 0, 0, 's11meas')
 
-    # measure s21
+    # measure s21 with pans
     sweep_antenna(PAN_STOPS, TILT_STOPS, ROLL_STOPS, hd5file, vna, GROUP_S21)
     print 'sweeping array to find radiation pattern'
 
@@ -70,10 +70,11 @@ if __name__ == "__main__":
     rot0_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
     rot90_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 90)
     
+    # save these as csv files
     save_radpattern_csv(rot0_pattern, dir + 'rot0')
     save_radpattern_csv(rot90_pattern, dir + 'rot90')
 
-    # set up plot
+    # set up plot, save
     font = {'family' : 'normal',
             'weight' : 'bold',
             'size'   : 14}
@@ -93,7 +94,6 @@ if __name__ == "__main__":
     legend(['0 degree rotate','90 degree rotate'])
     savefig(dir + 'radpattern.png', bbox_inches=0)
     
-    show()
-
+    # close hdf5 file
     hd5file.close()
     pdb.set_trace()

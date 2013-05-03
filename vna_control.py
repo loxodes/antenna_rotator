@@ -45,16 +45,6 @@ def vna_readspan(vna):
 def vna_preset(vna):
     vna.write("SYSTem:PRESet;*wai")
 
-def get_phase(vna, meas):
-    time.sleep(.01)
-    s = vna_get_measurement(vna, meas)
-    return skrf.complex_2_degree(s)
-
-def get_atten(vna, meas):
-    time.sleep(.01)
-    s = vna_get_measurement(vna, meas)
-    return 20 * log10(abs(s))
-
 # example usage: grabs S21 and S11 from VNA and plots the magnitude and phase
 if __name__ == "__main__":
     vna = vna_init()
