@@ -60,11 +60,28 @@ if __name__ == "__main__":
     e_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
     h_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 90)
 
+    pdb.set_trace() 
+
+    # set up plot
+    font = {'family' : 'normal',
+            'weight' : 'bold',
+            'size'   : 14}
+    matplotlib.rc('font', **font)
+    rcParams['legend.loc'] = 'best'
+
+    axis([-90,90,-60,-5])
+    
     plot(e_pattern['theta'],e_pattern['gain'])
     plot(h_pattern['theta'],h_pattern['gain'])
 
-    pdb.set_trace() 
-    hd5file.close()
-    print 'characterizing phase and attenuation'
-    # measure individual element phase and attenuation variations
+
+    title('measured and simulated |S21| of two element array at ' + str(TESTFREQ/1e18) + 'GHz steered to ')
+    ylabel('|S21| (dB)')
+    xlabel('antenna pan (degrees)')
+    grid(True)
+    legend(['0 degree rotate','90 degree rotate'])
+    savefig('radpattern.png', bbox_inches=0)
     
+    show()
+
+    hd5file.close()
