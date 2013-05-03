@@ -9,9 +9,8 @@ from vna_control import *
 from rotator_control import *
 from sweep_control import *
 from data_processing import *
-import skrf, time, pdb, h5py
+import skrf, time, pdb, h5py, os
 
-FILENAMEPREIX = 'antenna_test'
 FILENAME_DATEFORMAT = '_%y_%m_%d_%H_%M' # append date to filenames, see http://docs.python.org/2/library/time.html
 
 VNA_CALNAME = ''
@@ -34,6 +33,12 @@ BASE_ATT = 8
 BASE_PHASE = 0
  
 if __name__ == "__main__":
+    # get directory
+    dir = raw_read('please enter the name of a directory to save files in') + '/'
+    
+    if not os.exists(dir):
+        os.makedirs(dir)
+    
     # init VNA
     vna = vna_init()
     f = vna_readspan(vna)
@@ -43,7 +48,7 @@ if __name__ == "__main__":
     servo_reset(rser)    
    
     # create hd5f file
-    hd5file = create_h5file('array', f, ELEMENTS)
+    hd5file = create_h5file(dir + 'antenna_test', f, [])
    
     # measure s11 at boresight
     print 'init complete, measuring S11'
@@ -59,15 +64,14 @@ if __name__ == "__main__":
     f_center = hd5file['freqs'][s11_minidx]
     
     # export s11 as s1p
-    export_touchstone_s1p(hd5file, GROUP_S11, 'antenna_s11')
+    export_touchstone_s1p(hd5file, GROUP_S11, dir + 'antenna_s11')
 
     # plot radiation pattern at this frequency for E and H
     rot0_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
     rot90_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 90)
     
-    save_radpattern_csv(rot0_pattern, 'rot0')
-    save_radpattern_csv(rot90_pattern, 'rot90')
-    pdb.set_trace() 
+    save_radpattern_csv(rot0_pattern, dir + 'rot0')
+    save_radpattern_csv(rot90_pattern, dir + 'rot90')
 
     # set up plot
     font = {'family' : 'normal',
@@ -87,9 +91,9 @@ if __name__ == "__main__":
     xlabel('antenna pan (degrees)')
     grid(True)
     legend(['0 degree rotate','90 degree rotate'])
-    savefig('radpattern.png', bbox_inches=0)
+    savefig(dir + 'radpattern.png', bbox_inches=0)
     
     show()
 
     hd5file.close()
-
+    pdb.set_trace()
