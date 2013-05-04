@@ -34,9 +34,9 @@ BASE_PHASE = 0
  
 if __name__ == "__main__":
     # get directory
-    dir = raw_read('please enter the name of a directory to save files in') + '/'
+    dir = raw_input('please enter the name of a directory to save files in: ') + '/'
     
-    if not os.exists(dir):
+    if not os.path.exists(dir):
         os.makedirs(dir)
     
     # init VNA
@@ -48,23 +48,23 @@ if __name__ == "__main__":
     servo_reset(rser)    
    
     # create hd5f file
-    hd5file = create_h5file(dir + 'antenna_test', f, [])
+    hd5file = create_h5file(dir + 'antenna_measurements', f, [],[])
    
     # measure s11 at boresight
     print 'init complete, measuring S11'
     measure_antenna(hd5file, GROUP_S11, '', vna, 0, 0, 0, 's11meas')
 
     # measure s21 with pans
-    sweep_antenna(PAN_STOPS, TILT_STOPS, ROLL_STOPS, hd5file, vna, GROUP_S21)
+    sweep_antenna(PAN_STOPS, TILT_STOPS, ROLL_STOPS, hd5file, vna, GROUP_S21, rser)
     print 'sweeping array to find radiation pattern'
 
     # find index of resonant frequency of s11
-    s11 = re_to_db(hd5file[GROUP_S11][:])
+    s11 = re_to_db(hd5file[GROUP_S11 + '/t0p0r0'][:])
     s11_minidx = s11.index(min(s11))
-    f_center = hd5file['freqs'][s11_minidx]
+    f_center = hd5file['frequencysweep'][s11_minidx]
     
     # export s11 as s1p
-    export_touchstone_s1p(hd5file, GROUP_S11, dir + 'antenna_s11')
+    export_touchstone_s1p(hd5file, GROUP_S11 + '/t0p0r0', dir + 'antenna_s11')
 
     # plot radiation pattern at this frequency for E and H
     rot0_pattern = get_radpattern(hd5file, GROUP_S21, f_center, 0)
@@ -81,19 +81,20 @@ if __name__ == "__main__":
     matplotlib.rc('font', **font)
     rcParams['legend.loc'] = 'best'
 
-    axis([-90,90,-60,-5])
+    
     
     plot(rot0_pattern['theta'],rot0_pattern['gain'])
     plot(rot90_pattern['theta'],rot90_pattern['gain'])
 
 
-    title('measured and simulated |S21| of two element array at ' + str(TESTFREQ/1e18) + 'GHz steered to ')
+    title('measured and simulated |S21| of antenna \n with 0 and 90 degree rotation at ' + str(f_center/1e18) + 'GHz ')
     ylabel('|S21| (dB)')
     xlabel('antenna pan (degrees)')
     grid(True)
-    legend(['0 degree rotate','90 degree rotate'])
+    axis([-90,90,-60,-5])
+    
+    legend(['0 degree rotation','90 degree rotation'])
     savefig(dir + 'radpattern.png', bbox_inches=0)
     
     # close hdf5 file
     hd5file.close()
-    pdb.set_trace()

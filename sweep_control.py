@@ -3,8 +3,14 @@
 # higher level measurement and antenna rotator functions 
 # 
 
-import h5py
 from vna_control import *
+from rotator_control import *
+import h5py, time
+
+FILENAME_DATEFORMAT = '_%y_%m_%d_%H_%M'
+FILE_SUFFIX = '.hdf5'
+DSET_COMPRESSION = 'lzf'
+SLOP_DELAY = 5
 
 # measures an antenna, saves given tilt, pan, roll, metadata 
 def measure_antenna(hd5file, group, suffix, vna, tilt, pan, roll, meastype):
@@ -31,13 +37,15 @@ def create_h5file(fileprefix, freqs, elements, subgroups):
 
 # sweeps the antenna through the given pan, tilt, and roll
 # measures s21 at each stop and saves results to given hd5file
-def sweep_antenna(pans, tilts, rolls, hd5file, vna, name): 
+def sweep_antenna(pans, tilts, rolls, hd5file, vna, name, rser): 
     for t in tilts: 
         servo_setangle(rser, TILT_CHANNEL, t) 
         for p in pans: 
             servo_setangle(rser, PAN_CHANNEL, p) 
             for r in rolls: 
+                print 'measuring s21 for pan ' + str(p) + ', roll ' + str(r)
                 servo_setangle(rser, ROLL_CHANNEL, r) 
+                time.sleep(SLOP_DELAY)
                 measure_antenna(hd5file, name, '', vna,  t, p, r, 's21meas') 
  
 

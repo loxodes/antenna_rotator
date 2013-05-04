@@ -85,9 +85,9 @@ def servo_getstate(s):
 
 # reset servos to "home" position
 def servo_reset(s):
-    servo_setspeed(rser, ROLL_CHANNEL, 10)
-    servo_setspeed(rser, PAN_CHANNEL, 10)
-    servo_setspeed(rser, TILT_CHANNEL, 10)
+    servo_setspeed(s, ROLL_CHANNEL, 10)
+    servo_setspeed(s, PAN_CHANNEL, 10)
+    servo_setspeed(s, TILT_CHANNEL, 10)
     servo_setorientation(s, 0, 0,0)
 
 # commands servo controller to stop sending pulses 
