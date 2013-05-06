@@ -10,7 +10,7 @@ import h5py, time
 FILENAME_DATEFORMAT = '_%y_%m_%d_%H_%M'
 FILE_SUFFIX = '.hdf5'
 DSET_COMPRESSION = 'lzf'
-SLOP_DELAY = 5
+SLOP_DELAY = 1
 
 # measures an antenna, saves given tilt, pan, roll, metadata 
 def measure_antenna(hd5file, group, suffix, vna, tilt, pan, roll, meastype):
@@ -38,13 +38,13 @@ def create_h5file(fileprefix, freqs, elements, subgroups):
 # sweeps the antenna through the given pan, tilt, and roll
 # measures s21 at each stop and saves results to given hd5file
 def sweep_antenna(pans, tilts, rolls, hd5file, vna, name, rser): 
-    for t in tilts: 
-        servo_setangle(rser, TILT_CHANNEL, t) 
+    for r in rolls: 
+        servo_setangle(rser, ROLL_CHANNEL, r) 
         for p in pans: 
             servo_setangle(rser, PAN_CHANNEL, p) 
-            for r in rolls: 
+            for t in tilts: 
                 print 'measuring s21 for pan ' + str(p) + ', roll ' + str(r)
-                servo_setangle(rser, ROLL_CHANNEL, r) 
+                servo_setangle(rser, TILT_CHANNEL, t) 
                 time.sleep(SLOP_DELAY)
                 measure_antenna(hd5file, name, '', vna,  t, p, r, 's21meas') 
  

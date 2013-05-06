@@ -35,10 +35,10 @@ SERVO_CENTER[ROLL_CHANNEL] = 6000 #TBD
 
 SERVO_MAXROT = [0] * CHANNELS
 SERVO_MAXROT[TILT_CHANNEL] = 135
-SERVO_MAXROT[PAN_CHANNEL] = 520
+SERVO_MAXROT[PAN_CHANNEL] = 510
 SERVO_MAXROT[ROLL_CHANNEL] = 510
 
-SLOP_TIME = 2 # seconds
+SLOP_TIME = 1 # seconds
 BUSY_CHECKPERIOD = .1 # seconds
 
 # reads servo position
@@ -103,5 +103,4 @@ def servo_readerrors(s):
 
 if __name__ == '__main__':
     s = serial.Serial('COM9', 9600, timeout = 1)
-    servo_setspeed(s, ROLL_CHANNEL, 2)
-    servo_setaccel(s, ROLL_CHANNEL, 0)
+    servo_reset(s)

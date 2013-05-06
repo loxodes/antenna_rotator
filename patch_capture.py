@@ -25,7 +25,7 @@ ROTATOR_SERIALPORT = 'COM9'
 BAUDRATE = 9600
 TIMEOUT = 1
 
-PAN_STOPS = range(-90,90,5)
+PAN_STOPS = range(-90,95,5)
 TILT_STOPS = [0]
 ROLL_STOPS = [0, 90] 
 
@@ -63,6 +63,8 @@ if __name__ == "__main__":
     s11_minidx = s11.index(min(s11))
     f_center = hd5file['frequencysweep'][s11_minidx]
     
+    print 'sweep complete, processing data..'
+	
     # export s11 as s1p
     export_touchstone_s1p(hd5file, GROUP_S11 + '/t0p0r0', dir + 'antenna_s11')
 
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     plot(rot90_pattern['theta'],rot90_pattern['gain'])
 
 
-    title('measured and simulated |S21| of antenna \n with 0 and 90 degree rotation at ' + str(f_center/1e18) + 'GHz ')
+    title('measured |S21| of antenna \n with 0 and 90 degree rotation at ' + str(f_center/1e18) + 'GHz ')
     ylabel('|S21| (dB)')
     xlabel('antenna pan (degrees)')
     grid(True)
@@ -95,6 +97,7 @@ if __name__ == "__main__":
     
     legend(['0 degree rotation','90 degree rotation'])
     savefig(dir + 'radpattern.png', bbox_inches=0)
-    
+
+    servo_reset(rser)    
     # close hdf5 file
     hd5file.close()
