@@ -1,3 +1,6 @@
+# jon klein, jtklein@alaska.edu
+# mit license
+
 import h5py
 import numpy
 from pylab import *

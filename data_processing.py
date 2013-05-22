@@ -3,8 +3,9 @@
 
 from hdf5_tools import *
 from pylab import  *
+from mlabwrap import mlab
+import h5py, csv, os, pdb
 
-import h5py, csv
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
@@ -45,32 +46,23 @@ def save_radpattern_csv(pattern, filename):
             writer.writerow([theta, gain[i]])
 
 
-# quite inefficent.. 
+# calculate axial ratio using MATLAB script from Russel Carroll 
 def get_axialratio(hd5file, subgroup, freq, pan, tilt):
     fidx = get_fidx(hd5file, freq)
-    max_pos = ''
-    max_gain = -inf
-    ratio = -inf
-
-    for pos in hd5file[subgroup].keys():
-        dset = subgroup + '/' + pos
-
-        if float(hd5file[dset].attrs['pan']) == pan and float(hd5file[dset].attrs['tilt']) == tilt:
-            g = 20*log10(abs(hd5file[dset][fidx]))
-            if g > max_gain:
-                max_pos = float(hd5file[dset].attrs['roll'])
-                max_gain = g
-
-    for pos in hd5file[subgroup].keys():
-        dset = subgroup + '/' + pos
-        if float(hd5file[dset].attrs['pan']) == pan and float(hd5file[dset].attrs['tilt']) == tilt:
-            if float(hd5file[dset].attrs['roll']) == (max_pos + 90) or float(hd5file[dset].attrs['roll']) == (max_pos - 90):
-                g = 20*log10(abs(hd5file[dset][fidx]))
-                ratio = max_gain - g
-                break
+    slice = get_magphase_roll(hd5file, subgroup, freq, pan, tilt)
     
-    return ratio
+    mag = [abs(m) for m in slice['mag']]
+    roll = [deg2rad(t) for t in slice['roll']]
 
+    mlab.addpath(os.getcwd()) # not a very smart way of doing this
+    
+    result = mlab.Polarization_Curve_Fit(mag, roll)
+    
+    emax = result[0][0]
+    gamma = result[0][1]
+    phi = result[0][2]
+
+    return -20*log10(gamma)
 
 def get_magphase_pan(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
@@ -89,8 +81,33 @@ def get_magphase_pan(hd5file, subgroup, freq):
 
     return {'mag':mag, 'theta':theta}
 
+def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
+    fidx = get_fidx(hd5file, freq)
+
+    roll = []
+    mag = []
+
+    for pos in hd5file[subgroup].keys():
+        dset = subgroup + '/' + pos
+        m = hd5file[dset][fidx]
+        r = float(hd5file[dset].attrs['roll'])
+        t = float(hd5file[dset].attrs['tilt'])
+        p = float(hd5file[dset].attrs['pan'])
+
+        if p == pan and t == tilt:
+            roll = roll + [r]
+            mag = mag + [m]
+
+    return {'mag':mag, 'roll':roll}
+
+
 if __name__ == '__main__':
     h5f = h5py.File('e_only.hdf5')
-    pat = get_radpattern(h5f, 'e/pattern_characterization', 2.45e18, 0)
-    save_radpattern_csv(pat, 'testcsv')
+    freqs = get_freqs(h5f)
+    
+    ax = []
+    for f in freqs:
+        ax = ax + [get_axialratio(h5f, 'e/pattern_characterization', f, 0, 0)]
 
+    plot(freqs, ax)
+    show()
