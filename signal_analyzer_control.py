@@ -10,6 +10,11 @@ from pylab import *
 
 SIGNAL_ANALYZER_ADDR = "GPIB0::18"
 
+DISPLAY_ON = 1
+DISPLAY_OFF = 0
+PEAK_THRESHOLD = -70
+PEAK_AVG = 10
+
 def signal_analyzer_init():
     signal_analyzer = visa.instrument(SIGNAL_ANALYZER_ADDR)
     signal_analyzer_preset(signal_analyzer)
@@ -18,11 +23,14 @@ def signal_analyzer_init():
     
     return signal_analyzer
 
-def signal_analyzer_readpeak(signal_analyzer, threshold = -70):
+def signal_analyzer_readpeak(signal_analyzer, avg = PEAK_AVG, threshold = PEAK_THRESHOLD):
     signal_analyzer.write('INIT:IMM;*WAI')
     signal_analyzer.write('CALC:MARK:MAX')
     f = signal_analyzer.ask('CALC:MARK:X?')
     amp = signal_analyzer.ask('CALC:MARK:Y?')
+    for i in range(PEAK_AVG-1):
+        amp = amp + signal_analyzer.ask('CALC:MARK:Y?')
+    amp = amp / avg
     return {'freq':f,'amp':amp}
 
 def signal_analyzer_readsweep(signal_analyzer):
@@ -30,7 +38,13 @@ def signal_analyzer_readsweep(signal_analyzer):
     signal_analyzer.write('INIT:IMM;*WAI')
     vals = signal_analyzer.ask_for_values('TRAC:DATA? TRACE1')
     return vals
-    
+
+def signal_analyzer_display(signal_analyzer, display):
+    if display:
+        signal_analyzer.write(':DISP:ENAB ON')
+    else:
+        signal_analyzer.write(':DISP:ENAB OFF')
+
 def signal_analyzer_setref(signal_analyzer, reflevel):
     signal_analyzer.write('DISP:WIND:TRAC:Y:SCAL:RLEV ' + str(reflevel)) 
     
@@ -39,8 +53,8 @@ def signal_analyzer_setdiv(signal_analyzer, div):
     
 def signal_analyzer_setspan(signal_analyzer, span, center, points):
     signal_analyzer.write("SENSe:SWEep:POINts " + str(points))
-    signal_analyzer.write("SENSe:FREQuency:CENTer " + str(center) + "e9")
-    signal_analyzer.write("SENSe:FREQuency:SPAN " + str(span) + "e9")
+    signal_analyzer.write("SENSe:FREQuency:CENTer " + str(center))
+    signal_analyzer.write("SENSe:FREQuency:SPAN " + str(span))
  
 def signal_analyzer_readspan(signal_analyzer):
     points = int(signal_analyzer.ask("SENSe:SWEep:POINts?"))
@@ -56,7 +70,7 @@ def signal_analyzer_preset(signal_analyzer):
 if __name__ == "__main__":
     points = 1001
     signal_analyzer = signal_analyzer_init()
-    signal_analyzer_setspan(signal_analyzer, 2,2.5,points)
+    signal_analyzer_setspan(signal_analyzer, 2e9,2.5e9,points)
     signal_analyzer_setref(signal_analyzer, 20) # 20 dBm 
     signal_analyzer_setdiv(signal_analyzer, 15) # 15 dB/div
     span = signal_analyzer_readspan(signal_analyzer) 
