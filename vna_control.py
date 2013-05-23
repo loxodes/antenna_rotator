@@ -27,8 +27,8 @@ def vna_get_measurement(vna, measurement_name):
     vna.write("CALCulate:PARameter:SELect " + measurement_name)
     vna.write("INITiate:IMMediate;*wai")
     vals = vna.ask_for_values("CALCulate:DATA? SDATA")
-    re = numpy.array([vals[i] for i in range(0,len(vals),2)])
-    im = numpy.array([vals[i] for i in range(1,len(vals),2)])
+    re = array([vals[i] for i in range(0,len(vals),2)])
+    im = array([vals[i] for i in range(1,len(vals),2)])
     return re + 1j * im
     
 def vna_setspan(vna, span, center, points):
@@ -40,7 +40,7 @@ def vna_readspan(vna):
     points = int(vna.ask("SENSe1:SWEep:POIN?"))
     center = float(vna.ask("SENSe1:FREQuency:CENTer?"))
     span = float(vna.ask("SENSe1:FREQuency:SPAN?"))
-    return numpy.linspace(center - span / 2.0, center + span / 2.0, points) * 1e9
+    return linspace(center - span / 2.0, center + span / 2.0, points) * 1e9
 
 def vna_preset(vna):
     vna.write("SYSTem:PRESet;*wai")
