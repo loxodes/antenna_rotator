@@ -15,8 +15,42 @@
 # array of pin -> pout
 
 from amplifier_measurements import *
+from current_measurements import *
 from vna_control import *
 from hdf5tools import *
 
+if __name__ == '__main__':
+    
+    h5f = h5py.File('testfile'  + HDF5_SUFFIX)
+    h5f.create_group('gain')
+    
+    freqs = [2.4e9, 2.45e9, 2.5e9] # GHz
+    pins = range(-30,7,2)
 
+    sg = siggen_init()
+    sa = spectrum_analyzer_init()
+    scope = scope_init()
+    
+    hd5file.create_dataset('gain/pins', data=pins)
+    
+    # TODO: add calibration of attenuators, constant current draw, etc..
+   
+    for f in freqs:
+        group = 'gain/freq_' + str(f)
+        h5f.create_group(group)
 
+        pout = []
+        current = []
+        
+        for p in pins:
+            gain.extend(measure_gain(sa, sg, f, p)
+            current.extend(measure_avgcurrent(scope))
+            siggen_rfoff(sg)
+        
+        h5f.create_dataset(group + '/gain', data=gain) 
+        h5f.create_dataset(group + '/current', data=current) 
+
+        # TODO: ADD METADATA TO GAIN AND CURRENT MEASUREMENTS
+        # .. attenuation, current measurement tetc..
+    
+    h5f.close()

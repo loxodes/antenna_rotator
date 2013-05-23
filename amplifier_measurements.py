@@ -23,7 +23,7 @@ def measure_pxdb(sa, sg, freq, xdb = 1, max_input = MAX_INPUT, ref = REF_LEVEL, 
     
     return pxdbin
 
-def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP):
+def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP, siggen_disable = True):
     siggen_set_amp(sg, inlevel)
     siggen_set_freq(sg, f)
     
@@ -32,7 +32,8 @@ def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, ba
     time.sleep(startup_delay)
     peak = signal_analyzer_readpeak(sa)
     gain = peak['amp'] - inlevel
-    siggen_rfoff(sg)
+    if siggen_disable:
+        siggen_rfoff(sg)
     return gain 
 
 if __name__ == '__main__':
