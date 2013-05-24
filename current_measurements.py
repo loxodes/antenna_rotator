@@ -13,8 +13,8 @@ TRANSCONDUCTANCE_GAIN = 50 / .02
 
 def measure_avgcurrent(scope, current_scale = TRANSCONDUCTANCE_GAIN, channel = CURRENT_CHANNEL, time = CURRENT_MEASTIME, delay = CURRENT_MEASDELAY):
     scope_settimebase(scope, time, delay)
-    avg_voltage = average(scope_get_raw(scope, CURRENT_CHANNEL, CURRENT_POINTS) 
-    return (avg_voltage * IGAIN)
+    avg_voltage = average(scope_get_raw(scope, CURRENT_CHANNEL, CURRENT_POINTS))
+    return (avg_voltage * TRANSCONDUCTANCE_GAIN)
 
 if __name__ == '__main__':
     scope = scope_init()

@@ -6,7 +6,6 @@ import visa
 from pylab import *
 
 SCOPE_ADDR = "GPIB0::7"
-CURRENT_RESISTOR
 
 def scope_init():
     scope = visa.instrument(SCOPE_ADDR, values_format = visa.ascii)
@@ -19,10 +18,11 @@ def scope_get(scope, channel, points):
     return scaled
     
 def scope_get_raw(scope, channel, points):
-    scope.write(":TRIGGER:SWEEP NORMAL")
-    scope.write(":WAVEFORM:SOURCE CHANNEL " + str(channel))
+    scope.write(":TRIGGER:SWEEP AUTO")
+    scope.write(":WAVEFORM:SOURCE CHANNEL" + str(channel))
     scope.write(":WAVEFORM:FORMAT ASCII")
     scope.write(":WAVEFORM:POINTS " + str(points))
+    scope.write(":ACQUIRE:TYPE NORMAL")
     scope.write(":DIGITIZE CHANNEL" + str(channel))
     vals = scope.ask_for_values(":WAVEFORM:DATA?")[1:]
     return vals
@@ -33,12 +33,11 @@ def scope_settimebase(scope, base, delay):
     scope.write(":TIMEBASE:REFERENCE CENTER")
 
 def scope_get_scaledvals(scope, vals, channel):
-    scale = float(scope.ask(":CHANNEL" + str(channel) + ':SCALE?'))
-    offset = float(scope.ask(":CHANNEL" + str(channel) + ':OFFSET?'))
-    att = float(scope.ask(":CHANNEL" + str(channel) + ':PROBE?'))
+    #scale = float(scope.ask(":CHANNEL" + str(channel) + ':SCALE?'))
+    #offset = float(scope.ask(":CHANNEL" + str(channel) + ':OFFSET?'))
+    #att = float(scope.ask(":CHANNEL" + str(channel) + ':PROBE?'))
     span = float(scope.ask(":TIMEBASE:RANGE?"))
-    delay = float(scope.ask(":TIMEBASE:DELAY?"))
-    
+    #delay = float(scope.ask(":TIMEBASE:DELAY?"))  
     t = linspace(0,span,len(vals))
     return {'time':t, 'amp':vals}
 
@@ -61,13 +60,13 @@ def scope_autoscale(scope):
 def scope_preset(scope):
     scope.write("*RST")
 
-
 # example usage: grabs and plots values from scope with correct time and amplitude scaling
 if __name__ == "__main__":
-    points = 200
+    points = 250
     scope = scope_init()
+    # scope_settrigger(scope, 1, 0, slope = 'POSITIVE', mode = 'AUTO', type = 'NORMAL')
     scope_autoscale(scope)
-    vals =  scope_get(scope, 1, points)
+    vals = scope_get(scope, 1, points)
     plot(vals['time'], vals['amp'])
     show()
     

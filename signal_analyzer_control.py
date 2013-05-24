@@ -26,10 +26,10 @@ def signal_analyzer_init():
 def signal_analyzer_readpeak(signal_analyzer, avg = PEAK_AVG, threshold = PEAK_THRESHOLD):
     signal_analyzer.write('INIT:IMM;*WAI')
     signal_analyzer.write('CALC:MARK:MAX')
-    f = signal_analyzer.ask('CALC:MARK:X?')
-    amp = signal_analyzer.ask('CALC:MARK:Y?')
+    f = float(signal_analyzer.ask('CALC:MARK:X?'))
+    amp = float(signal_analyzer.ask('CALC:MARK:Y?'))
     for i in range(PEAK_AVG-1):
-        amp = amp + signal_analyzer.ask('CALC:MARK:Y?')
+        amp = amp + float(signal_analyzer.ask('CALC:MARK:Y?'))
     amp = amp / avg
     return {'freq':f,'amp':amp}
 
