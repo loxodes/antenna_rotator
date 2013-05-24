@@ -5,6 +5,8 @@ import h5py
 import numpy
 from pylab import *
 
+HDF5_SUFFIX = '.hdf5'
+DSET_COMPRESSION = '.lzf'
 F_SCALE = 1e18
 
 # gets the index of a frequency closed to one from an hdf5 file

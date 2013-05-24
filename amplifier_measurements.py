@@ -13,23 +13,17 @@ MAX_INPUT = 5 # maximum input (dBm)
 AMP_STARTUP = .1 # seconds between siggen enable and measurement
 
 def measure_pxdb(sa, sg, freq, xdb = 1, max_input = MAX_INPUT, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP):
-    small_signal_gain = measure_small_signal_gain(sa, sg, freq, SMALL_SIGNAL_LEVEL, ref, bandwidth, startup_delay)
+    small_signal_gain =  measure_gain(sa, sg, freq, SMALL_SIGNAL_LEVEL, ref, bandwidth, startup_delay)
     pxdbin = SMALL_SIGNAL_LEVEL
 
     for p in range(SMALL_SIGNAL_LEVEL, max_input, .1):
-        siggen_set_amp(sg, p)
-        siggen_rfon(sg)
-        time.sleep(startup_delay)
-    
-        peak = signal_analyzer_readpeak(sa)
-        gain = peak['amp'] - p
-        
+        gain = measure_gain(sa, sg, freq, p, ref, bandwidth, startup_delay)
         if gain < small_signal_gain - xdb:
         break
     
     return pxdbin
 
-def measure_small_signal_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP):
+def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP):
     siggen_set_amp(sg, inlevel)
     siggen_set_freq(sg, f)
     
@@ -37,16 +31,16 @@ def measure_small_signal_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = 
     siggen_rfon(sg)
     time.sleep(startup_delay)
     peak = signal_analyzer_readpeak(sa)
-    small_signal_gain = peak['amp'] - inlevel
-    
-    return small_signal_gain
+    gain = peak['amp'] - inlevel
+    siggen_rfoff(sg)
+    return gain 
 
 if __name__ == '__main__':
     sg = siggen_init()
     sa = spectrum_analyzer_init()
     f = 2.45e9 # GHz
     p1db = measure_pxdb(sa, sg, f)
-    gain = measure_small_signal_gain(sa, sg, freq) 
+    gain = measure_gain(sa, sg, freq) 
     print 'gain: ' + str(gain)
     print 'p1db: ' + str(p1db)
 

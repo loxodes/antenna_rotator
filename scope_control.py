@@ -6,6 +6,7 @@ import visa
 from pylab import *
 
 SCOPE_ADDR = "GPIB0::7"
+CURRENT_RESISTOR
 
 def scope_init():
     scope = visa.instrument(SCOPE_ADDR, values_format = visa.ascii)
@@ -35,10 +36,10 @@ def scope_get_scaledvals(scope, vals, channel):
     scale = float(scope.ask(":CHANNEL" + str(channel) + ':SCALE?'))
     offset = float(scope.ask(":CHANNEL" + str(channel) + ':OFFSET?'))
     att = float(scope.ask(":CHANNEL" + str(channel) + ':PROBE?'))
-    range = float(scope.ask(":TIMEBASE:RANGE?"))
+    span = float(scope.ask(":TIMEBASE:RANGE?"))
     delay = float(scope.ask(":TIMEBASE:DELAY?"))
     
-    t = linspace(0,range,len(vals))
+    t = linspace(0,span,len(vals))
     return {'time':t, 'amp':vals}
 
 def scope_setchannel(scope, channel, scale, att = 10, offset = 0, coupling = 'DC'):
@@ -59,6 +60,7 @@ def scope_autoscale(scope):
     
 def scope_preset(scope):
     scope.write("*RST")
+
 
 # example usage: grabs and plots values from scope with correct time and amplitude scaling
 if __name__ == "__main__":
