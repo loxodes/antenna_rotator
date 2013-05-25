@@ -65,6 +65,9 @@ def signal_analyzer_readspan(signal_analyzer):
 def signal_analyzer_preset(signal_analyzer):
     signal_analyzer.write("*CLS")
     signal_analyzer.write("*RST")
+    
+def dbm_to_watt(p):
+    return pow(10.0,p/10)/1000
 
 # example usage: grabs and plots values from signal_analyzer with correct amplitude scaling
 if __name__ == "__main__":
