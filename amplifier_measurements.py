@@ -6,6 +6,7 @@ from signal_analyzer_control import *
 from siggen_control import *
 import time
 
+SPAN_POINTS = 801
 SMALL_SIGNAL_LEVEL = -60 # dBm level for small signal gain calculation
 REF_LEVEL = 20 # dBm
 BANDWIDTH = 10e6 # bandwidth for spectrum analyzer measurements (MHz)
@@ -23,11 +24,11 @@ def measure_pxdb(sa, sg, freq, xdb = 1, max_input = MAX_INPUT, ref = REF_LEVEL, 
     
     return pxdbin
 
-def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP, siggen_disable = True):
+def measure_gain(sa, sg, freq, inlevel = SMALL_SIGNAL_LEVEL, ref = REF_LEVEL, bandwidth = BANDWIDTH, startup_delay = AMP_STARTUP, siggen_disable = True, points = SPAN_POINTS):
     siggen_set_amp(sg, inlevel)
     siggen_set_freq(sg, freq)
-    
-    signal_analyzer_setspan(sa, bandwidth, freq, ref) 
+    signal_analyzer_setspan(sa, bandwidth, freq, points) 
+    signal_analyzer_setref(sa, ref)
     siggen_rfon(sg)
     time.sleep(startup_delay)
     peak = signal_analyzer_readpeak(sa)

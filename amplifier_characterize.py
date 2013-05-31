@@ -19,15 +19,16 @@ from current_measurements import *
 from vna_control import *
 from hdf5_tools import *
 # from antenna_pattern import *
-import os
+import os, time
 
+CAL_TABLE = [20.951, 20.988, 21.102]
 if __name__ == '__main__':
     os.remove('testfile.hdf5')
     h5f = h5py.File('testfile'  + HDF5_SUFFIX)
     h5f.create_group('gain')
     element = 'f'
     freqs = [2.4e9, 2.45e9, 2.5e9] # GHz
-    pins = range(-30,7,2)
+    pins = range(-20,0,2)
     vin = 3.6
     
     sg = siggen_init()
@@ -36,14 +37,18 @@ if __name__ == '__main__':
     
     calresponse = raw_input('if you want to calibrate out attenuators and cables, bypass the amplifier and connect them between the signal generator and signal analyzer and enter y. otherwise, type n: ').lower()
     cal_loss = [0] * len(freqs)
+    
     if(calresponse[0].lower() == 'y'): 
         for (i, f) in enumerate(freqs):
             cal_loss[i] = -measure_gain(sa, sg, f, 0)
+            print 'frequency: ' + str(f) + ' cal loss: ' + str(cal_loss[i])
         raw_input('connect your amplifier and press enter to continue...')
-        h5f.create_dataset('calibrated_loss', data=cal_loss)
+    else:
+        cal_loss = CAL_TABLE
         
+    h5f.create_dataset('calibrated_loss', data=cal_loss)
     h5f.create_dataset('gain/pins', data=pins)    
-    h5f.create_dataset('gain/freqs', data=freqs)  
+    h5f.create_dataset('gain/freqs', data=freqs)
     
     for (i, f) in enumerate(freqs):
         group = 'gain/freq_' + str(f)
@@ -54,7 +59,7 @@ if __name__ == '__main__':
         pae = []
         
         for p in pins:
-            gain.extend([measure_gain(sa, sg, f, p) + cal_loss[i]])
+            gain.extend([measure_gain(sa, sg, f, p, 20, siggen_disable = False) + cal_loss[i]])
             current.extend([measure_avgcurrent(scope)])
             pae.extend([(dbm_to_watt(gain[-1]+p)-dbm_to_watt(p))/(vin * current[-1])])
             siggen_rfoff(sg)
@@ -63,8 +68,9 @@ if __name__ == '__main__':
         h5f.create_dataset(group + '/current', data=current) 
         h5f.create_dataset(group + '/pae', data=pae)
         
-        hd5file[group + '/current'].attrs.create('vtoiratio', TRANSCONDUCTANCE_GAIN)
-        hd5file[group + '/current'].attrs.create('supply_voltage', vin)
+        
+        h5f[group + '/current'].attrs.create('vtoiratio', TRANSCONDUCTANCE_GAIN)
+        h5f[group + '/current'].attrs.create('supply_voltage', vin)
         
     
 #    raw_input('connect amplifier to the VNA, apply calibration, then press enter to continue')
