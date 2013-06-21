@@ -28,7 +28,7 @@ if __name__ == '__main__':
     h5f.create_group('gain')
     element = 'f'
     freqs = [2.4e9, 2.45e9, 2.5e9] # GHz
-    pins = range(-20,0,2)
+    pins = range(-20,8,3)
     vin = 3.6
     
     sg = siggen_init()
@@ -60,14 +60,15 @@ if __name__ == '__main__':
         
         for p in pins:
             gain.extend([measure_gain(sa, sg, f, p, 20, siggen_disable = False) + cal_loss[i]])
+            time.sleep(.01)
             current.extend([measure_avgcurrent(scope)])
+            print 'measured current: ' + str(1000*current[-1]) +' mA' 
             pae.extend([(dbm_to_watt(gain[-1]+p)-dbm_to_watt(p))/(vin * current[-1])])
             siggen_rfoff(sg)
         
         h5f.create_dataset(group + '/gain', data=gain) 
         h5f.create_dataset(group + '/current', data=current) 
         h5f.create_dataset(group + '/pae', data=pae)
-        
         
         h5f[group + '/current'].attrs.create('vtoiratio', TRANSCONDUCTANCE_GAIN)
         h5f[group + '/current'].attrs.create('supply_voltage', vin)

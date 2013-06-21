@@ -8,18 +8,21 @@ from scope_control import *
 CURRENT_MEASTIME = 100 # milliseconds
 CURRENT_MEASDELAY = 0 # milliseconds
 CURRENT_CHANNEL = 1
-CURRENT_POINTS = 50
-TRANSCONDUCTANCE_GAIN = 1.25
+CURRENT_POINTS = 500
+TRANSCONDUCTANCE_GAIN = 1.047#1.155
+
 
 def measure_avgcurrent(scope, current_scale = TRANSCONDUCTANCE_GAIN, channel = CURRENT_CHANNEL, time = CURRENT_MEASTIME, delay = CURRENT_MEASDELAY):
-    scope_autoscale(scope)
     scope_settimebase(scope, time, delay)
+    scope_setchannel(scope, channel, .05, att = 10, offset = .2)
     avg_voltage = average(scope_get_raw(scope, CURRENT_CHANNEL, CURRENT_POINTS))
     return (avg_voltage * TRANSCONDUCTANCE_GAIN)
 
 if __name__ == '__main__':
     scope = scope_init()
-    scope_setchannel(scope, 1, .2)
-    print measure_avgcurrent(scope)
-    
+ #   scope_setchannel(scope, 1, .1)
+    current = 0
+    for i in range(10):
+        current = current + measure_avgcurrent(scope)
+    print current / 10
     
