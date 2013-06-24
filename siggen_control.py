@@ -2,10 +2,11 @@
 # mit license
 # library for controlling  Agilent E4000 series signal generator (tested on an E4433B)
 
-import visa
+import visa, time
 from pylab import *
 
 SIGGEN_ADDR = "GPIB0::19"
+SIGGEN_DELAY = .1 # delay after signal generator setting.
 
 def siggen_init():
     siggen = visa.instrument(SIGGEN_ADDR)

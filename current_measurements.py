@@ -14,7 +14,7 @@ TRANSCONDUCTANCE_GAIN = 1.047#1.155
 
 def measure_avgcurrent(scope, current_scale = TRANSCONDUCTANCE_GAIN, channel = CURRENT_CHANNEL, time = CURRENT_MEASTIME, delay = CURRENT_MEASDELAY):
     scope_settimebase(scope, time, delay)
-    scope_setchannel(scope, channel, .05, att = 10, offset = .2)
+    scope_setchannel(scope, channel, .1, att = 10, offset = .4)
     avg_voltage = average(scope_get_raw(scope, CURRENT_CHANNEL, CURRENT_POINTS))
     return (avg_voltage * TRANSCONDUCTANCE_GAIN)
 
