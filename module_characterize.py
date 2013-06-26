@@ -13,17 +13,19 @@ def measure_phaseatt(h5f, aser, vna, element):
     h5f.create_dataset('vna_frequencysweep', data=vna_readspan(vna))
     h5f.create_group(str(element) + GROUP_ATT)
     h5f.create_group(str(element) + GROUP_PHASE)
-    characterize_phaseatt(h5f, vna, element, BASE_ATT, aser)
+    h5f.create_group(str(element) + GROUP_RAWPHASE)
+    h5f.create_group(str(element) + GROUP_RAWATT)
+    characterize_phaseatt(h5f, vna, element, 0, aser)
     
 if __name__ == '__main__':
-    element = 'g'
+    element = 'e'
     freqs = [2.4e9, 2.45e9, 2.485e9, 2.5e9] # GHz
     txpins = range(-20,5,2)
     rxpins = range(-50,-10, 5)
     vin = 3.6
     cal_loss = [21.562, 21.608, 21.62, 21.714]
     
-    h5f = h5py.File('element_' +  element + '_measurements' + str(time.time())[:-3] + HDF5_SUFFIX)  
+    h5f = h5py.File('element_' +  element + '_measurements_wraw' + str(time.time())[:-3] + HDF5_SUFFIX)  
     aser = serial.Serial(ARRAY_SERIALPORT, BAUDRATE, timeout=TIMEOUT)
     sg = siggen_init()
     sa = signal_analyzer_init()
@@ -39,14 +41,14 @@ if __name__ == '__main__':
     #raw_input('reconnect power jumper, then press enter to continue')
     #time.sleep(TRSTARTUP_DELAY)
     
-    raw_input('connect amplifier to the VNA, apply calibration, then press enter to continue')
-    measure_phaseatt(h5f, aser, vna, element)
-    set_mode(aser, element, 'standby')
+    #raw_input('connect amplifier to the VNA, apply calibration, then press enter to continue')
+    #measure_phaseatt(h5f, aser, vna, element)
+    #set_mode(aser, element, 'standby')
 
     raw_input('connect tx path to spectrum analyzer and signal generator, then press enter to continue')
     standbycurrent = measure_avgcurrent(scope)
     h5f.create_dataset('current_measurements/standbycurrent', data=standbycurrent)
-    
+      
     set_mode(aser, element, 'tx')
     att_set(aser, element, 0)
     

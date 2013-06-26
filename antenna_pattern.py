@@ -15,7 +15,9 @@ VNA_CALNAME = 'INSERT CALIBRATION HERE INFORMATION HERE'
 DSET_COMPRESSION = 'lzf'
 
 GROUP_ATT = '/att_characterization'
+GROUP_RAWATT = '/raw_att_characterization'
 GROUP_PHASE = '/phase_characterization'
+GROUP_RAWPHASE = '/raw_phase_characterization'
 GROUP_RADPAT = '/pattern_characterization'
 FILE_SUFFIX = '.hdf5'
 GROUP_STEER = '/steer'
@@ -75,15 +77,23 @@ def characterize_phaseatt(hd5file, vna, elements, baseatt, ser):
     att = baseatt
 
     for phase in range(0,380,5):
-        print 'measuring phase shift ' + str(phase)
+        print 'measuring calibrated phase shift ' + str(phase)
         measure_elements(hd5file, GROUP_PHASE, vna, elements, ser, 0, 0, 0, att, phase)
-            
-    print 'characterizing element attenuation'
-    for att in range(16):
+        
+    for phase in range(0,64):
+        print 'measuring raw phase shifter register setting ' + str(phase)
+        measure_elements(hd5file, GROUP_RAWPHASE, vna, elements, ser, 0, 0, 0, att, phase, rawphase = True, rawatt = True, )
+        
+    print 'characterizing calibrated attenuation'
+    for att in range(20):
         print 'measuring attenuation setting ' + str(att)
         measure_elements(hd5file, GROUP_ATT, vna, elements, ser, 0, 0, 0, att, 0)
+        
+    for att in range(20):
+        print 'measuring raw attenuation setting ' + str(att)
+        measure_elements(hd5file, GROUP_RAWATT, vna, elements, ser, 0, 0, 0, att, 0, rawphase = True, rawatt = True)
    
-def measure_elements(hd5file, group, vna, elements, ser, tilt, pan, roll, att, phase):
+def measure_elements(hd5file, group, vna, elements, ser, tilt, pan, roll, att, phase, rawphase = False, rawatt = False):
     # set all to standby, att0, phase0
     for e in elements:
         time.sleep(.1)
@@ -91,9 +101,18 @@ def measure_elements(hd5file, group, vna, elements, ser, tilt, pan, roll, att, p
         for el in elements:
             set_mode(ser, el, 'standby')
         
-        att_set(ser, e, att)
-        att_set(ser, e, att)
-        phase_set(ser, e, phase)
+        # .. this shouldn't have to happpen twice
+        if rawatt:
+            att_set_raw(ser, e, att)
+            att_set_raw(ser, e, att) 
+        else:
+            att_set(ser, e, att)
+            att_set(ser, e, att)
+        
+        if rawphase:
+            phase_set_raw(ser, e, phase)
+        else:
+            phase_set(ser, e, phase)
         
         set_mode(ser, e, 'tx')
         time.sleep(TX_STARTUP) 
@@ -135,7 +154,9 @@ def create_h5file(fileprefix, freqs, elements, steering):
     for g in elements:
         hd5file.create_group(g)
         hd5file.create_group(g + GROUP_ATT)
+        hd5file.create_group(g + GROUP_RAWATT)
         hd5file.create_group(g + GROUP_PHASE)
+        hd5file.create_group(g + GROUP_RAWPHASE)
         hd5file.create_group(g + GROUP_RADPAT)
     
     for s in steering:

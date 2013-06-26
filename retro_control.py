@@ -28,8 +28,10 @@ CMD_PA_DET_READ = '\xD2'
 CMD_PA_DAC_THERM_READ = '\xD4'
 CMD_PA_ATT_READ = '\xD6'
 CMD_PA_ATT_SET = '\xD7'
+CMD_PA_ATT_SET_RAW = '\xDB'
 CMD_PA_PHASE_READ = '\xD8'
 CMD_PA_PHASE_SET = '\xD9'
+CMD_PA_PHASE_SET_RAW = '\xDA'
 CMD_PA_MODE_READ =  '\xDC'
 CMD_PA_MODE_SET = '\xDD'
 
@@ -137,6 +139,11 @@ def att_set(s, addr, value):
     time.sleep(COMMAND_DELAY)
     return r['k']
     
+def att_set_raw(s, addr, value):
+    r = cmd_send(s, addr, CMD_PA_ATT_SET_RAW, short_pack(int(value)))
+    time.sleep(COMMAND_DELAY)
+    return r['k']
+    
 def dac_set(s, addr, value):
     r = cmd_send(s, addr, CMD_PA_DAC_SET, short_pack(int(value)))
     return r['k']
@@ -147,6 +154,11 @@ def checkdactemp(s):
 
 def phase_set(s, addr, value):
     r = cmd_send(s, addr, CMD_PA_PHASE_SET, short_pack(int(value)))
+    time.sleep(COMMAND_DELAY)
+    return r['k']
+
+def phase_set_raw(s, addr, value):
+    r = cmd_send(s, addr, CMD_PA_PHASE_SET_RAW, short_pack(int(value)))
     time.sleep(COMMAND_DELAY)
     return r['k']
 

@@ -44,7 +44,7 @@ def measure_lsgain(h5f, groupprefix, freqs, pins,sa, sg, scope, cal_loss, vin = 
         pae = []
         
         for p in pins:
-            gain.extend([measure_gain(sa, sg, f, p, 20, siggen_disable = False) - cal_loss[i]])
+            gain.extend([measure_gain(sa, sg, f, p, 20, siggen_disable = False) + cal_loss[i]])
             time.sleep(.01)
             current.extend([measure_avgcurrent(scope)])
             print 'measured current: ' + str(1000*current[-1]) +' mA' 
