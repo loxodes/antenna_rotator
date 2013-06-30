@@ -25,11 +25,16 @@ TILT_CHANNEL = 1
 PAN_CHANNEL = 4
 ROLL_CHANNEL = 5
 
-SERVO_MINPULSE = 4000
-SERVO_MAXPULSE = 8000
+SERVO_MINPULSE = [4000] * CHANNELS
+SERVO_MAXPULSE = [8000] * CHANNELS
+
+SERVO_MINLIMIT = [-181] * CHANNELS
+SERVO_MAXLIMIT = [180] * CHANNELS
+SERVO_MINLIMIT[TILT_CHANNEL] = -10
+SERVO_MAXLIMIT[TILT_CHANNEL] = 91
 
 SERVO_CENTER = [0] * CHANNELS
-SERVO_CENTER[TILT_CHANNEL] = 5100
+SERVO_CENTER[TILT_CHANNEL] = 4950
 SERVO_CENTER[PAN_CHANNEL] = 6010
 SERVO_CENTER[ROLL_CHANNEL] = 6000
 
@@ -53,16 +58,20 @@ def servo_setorientation(s, pan, tilt, roll):
 
 # sets the position of the servo with to target quarter microseconds
 def servo_setpos(s, channel, target):
-    if channel >= 0 and channel < CHANNELS and target >= SERVO_MINPULSE and target <= SERVO_MAXPULSE:
+    if channel >= 0 and channel < CHANNELS and target >= SERVO_MINPULSE[channel] and target <= SERVO_MAXPULSE[channel]:
         s.write(CMD_ROT_SET_POS + chr(channel) + chr(int(target) & MAESTRO_TARGET_MASK) + chr((int(target) >> 7) & MAESTRO_TARGET_MASK))
     else:
         print 'servo positioning error: target or channel outside bounds'
 
 # sets a servo to an angle (in degrees). 0 degrees is centered, angle can be positive or negative
 def servo_setangle(s, channel, angle):
-    target = SERVO_CENTER[channel] + (SERVO_MAXPULSE - SERVO_MINPULSE) * (angle / SERVO_MAXROT[channel]) 
-    if target < SERVO_MINPULSE or target > SERVO_MAXPULSE:
+    if angle < SERVO_MINLIMIT[channel] or angle > SERVO_MAXLIMIT[channel]:
+        print 'servo control error: steering ' + str(angle) + ' on channel ' + str(channel) + ' outside bounds'
+        return
+    target = SERVO_CENTER[channel] + (SERVO_MAXPULSE[channel] - SERVO_MINPULSE[channel]) * (angle / SERVO_MAXROT[channel]) 
+    if target < SERVO_MINPULSE[channel] or target > SERVO_MAXPULSE[channel]:
         print 'servo control error: steering error to invalid target of ' + str(target/4000) + 'ms'
+        return
     servo_setpos(s, channel, target);
 
     # wait for servo to stop

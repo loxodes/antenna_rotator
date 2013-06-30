@@ -62,7 +62,7 @@ class RetroConsole(cmd.Cmd):
         Sets the roll angle of the positioner in degrees (0 is upright)
         example: roll -10
         valid angles vary by servo, but are probably -180 to 180'''
-        servo_setangle(self.rser, ROLL_CHANNEL, line)
+        servo_setangle(self.rser, ROLL_CHANNEL, int(line))
         
     def do_flush(self, line):
         '''flush
@@ -75,14 +75,14 @@ class RetroConsole(cmd.Cmd):
         Sets the pan angle of the positioner in degrees (0 is boresight)
         example: pan -10
         valid angles vary by servo, but are probably -180 to 180'''
-        servo_setangle(self.rser, ROLL_CHANNEL, line)
+        servo_setangle(self.rser, PAN_CHANNEL, int(line))
 
     def do_tilt(self, line):
         '''tilt
         Sets the tilt angle of the positioner in degrees (0 is upright)
         example: tilt -10
         valid angles vary by servo, but are probably 0 to -90'''
-        servo_setangle(self.rser, ROLL_CHANNEL, line)
+        servo_setangle(self.rser, TILT_CHANNEL, int(line))
 
     def do_mode(self, line):
         '''mode state
@@ -108,10 +108,18 @@ class RetroConsole(cmd.Cmd):
         '''phase channel value
         Sets the phase offset of a address (in degrees)
         example: phase 1 150
-        valid phase ranges are 0 to 200'''
+        valid phase ranges are 0 to 360'''
         args = shlex.split(line)
         phase_set(self.ser, args[0], args[1])
-
+    
+    def do_phaseraw(self, line):
+        '''phase channel value
+        Sets the raw phase register value
+        example: phase 1 150
+        valid phase ranges are 0 to 360'''
+        args = shlex.split(line)
+        phase_set_raw(self.ser, args[0], args[1])
+        
     def do_dac_temp(self, line):
         '''dac_temp
         Checks the phase shifter driver amplifier for high temperature condition
@@ -142,10 +150,18 @@ class RetroConsole(cmd.Cmd):
     def do_att(self, line):
         '''att channel value
         Sets the attenuation of a channel (in dB)
-        example: att 4 20
+        example: att e 20
         valid addresses are 0-255, valid attenuation is 0 to 30dB, in .25dB stepping'''
         args = shlex.split(line)
         att_set(self.ser, args[0], args[1])
+        
+    def do_attraw(self, line):
+        '''att channel value
+        Sets the attenuator register directly, bypassing calibration
+        example: att e 15
+        valid attenuation values are 0-31'''
+        args = shlex.split(line)
+        att_set_raw(self.ser, args[0], args[1])
         
     def do_steer(self, line):
         ''' steers the entire array to an az/el angle

@@ -76,20 +76,19 @@ def characterize_phaseatt(hd5file, vna, elements, baseatt, ser):
     # set all to standby except element, set element to tx
     att = baseatt
 
-    for phase in range(0,380,5):
+    for phase in range(0,380,2):
         print 'measuring calibrated phase shift ' + str(phase)
         measure_elements(hd5file, GROUP_PHASE, vna, elements, ser, 0, 0, 0, att, phase)
         
-    for phase in range(0,64):
+    for phase in range(64):
         print 'measuring raw phase shifter register setting ' + str(phase)
         measure_elements(hd5file, GROUP_RAWPHASE, vna, elements, ser, 0, 0, 0, att, phase, rawphase = True, rawatt = True, )
         
-    print 'characterizing calibrated attenuation'
     for att in range(20):
         print 'measuring attenuation setting ' + str(att)
         measure_elements(hd5file, GROUP_ATT, vna, elements, ser, 0, 0, 0, att, 0)
         
-    for att in range(20):
+    for att in range(30):
         print 'measuring raw attenuation setting ' + str(att)
         measure_elements(hd5file, GROUP_RAWATT, vna, elements, ser, 0, 0, 0, att, 0, rawphase = True, rawatt = True)
    
@@ -101,10 +100,9 @@ def measure_elements(hd5file, group, vna, elements, ser, tilt, pan, roll, att, p
         for el in elements:
             set_mode(ser, el, 'standby')
         
-        # .. this shouldn't have to happpen twice
         if rawatt:
             att_set_raw(ser, e, att)
-            att_set_raw(ser, e, att) 
+            att_set_raw(ser, e, att)
         else:
             att_set(ser, e, att)
             att_set(ser, e, att)
