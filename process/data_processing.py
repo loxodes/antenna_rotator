@@ -24,7 +24,7 @@ def get_radpattern(hd5file, subgroup, freq, rot):
         p = float(hd5file[dset].attrs['pan'])
         r = float(hd5file[dset].attrs['roll'])
 
-        if r == rot:
+        if r == rot and t == 0:
             phi = phi + [t]
             gain = gain + [g]
             theta = theta + [p]
@@ -78,7 +78,8 @@ def get_magphase_pan(hd5file, subgroup, freq):
         if r == 0 and t == 0:
             theta = theta + [p]
             mag = mag + [m]
-
+    mag = sort_by_array(theta, mag)
+    theta.sort()
     return {'mag':mag, 'theta':theta}
 
 def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):

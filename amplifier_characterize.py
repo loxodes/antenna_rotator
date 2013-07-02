@@ -17,7 +17,6 @@
 from amplifier_measurements import *
 from current_measurements import *
 from vna_control import *
-from hdf5_tools import *
 
 import os, time
 

@@ -8,7 +8,7 @@ GROUP_RAWATT = '/raw_att_characterization'
 GROUP_RAWPHASE = '/raw_phase_characterization'
 
 F_SCALE = 1e18
-
+DSET_COMPRESSION = '.lzf'
 FSWEEPNAME = 'frequencysweep'
 
 # gets the index of a frequency closed to one from an hdf5 file
@@ -33,3 +33,19 @@ def get_freqs(hd5file, fsweepname = FSWEEPNAME):
 def sort_by_array(sortarray, array):
     inds = numpy.argsort(sortarray)
     return numpy.take(array, inds)
+
+
+def export_touchstone_s1p(hd5file, group, filename):
+    s1pfile = open(filename + '.s1p', 'w')
+
+    s11 = hd5file[group][:]
+
+    s1pfile.write('! s1p file attempt\n')
+    
+    s1pfile.write('# HZ S RI R 50\n')
+    s1pfile.write('! freq re(s11) im(s11)\n')
+    freqs = get_freqs(hd5file)
+    for i, f in enumerate(freqs):
+        s1pfile.write(str(f/1e9) + '\t' + str(real(s11[i])) + '\t' + str(imag(s11[i])) + '\n')
+    
+    s1pfile.close()
