@@ -5,6 +5,7 @@ from hdf5_tools import *
 from pylab import  *
 from mlabwrap import mlab
 import h5py, csv, os, pdb
+import pdb
 
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
@@ -13,27 +14,26 @@ def re_to_db(array):
 def get_radpattern(hd5file, subgroup, freq, rot):
     fidx = get_fidx(hd5file, freq)
 
-    gain = []
-    phi = []
-    theta = []
+    gain = np.array([])
+    phi = np.array([])
+    theta = np.array([])
+    mag = np.array([])
+    rot = np.array([])
 
     for pos in hd5file[subgroup].keys():
-        dset = subgroup + '/' + pos
-        g = 20*log10(abs(hd5file[dset][fidx]))
-        t = float(hd5file[dset].attrs['tilt'])
-        p = float(hd5file[dset].attrs['pan'])
-        r = float(hd5file[dset].attrs['roll'])
+        if r == float(hd5file[dset].attrs['roll']):
+            dset = subgroup + '/' + pos
+            gain = np.append(20*log10(abs(hd5file[dset][fidx])), gain)
+            mag = np.append(hd5file[dset][fidx], mag)
+            theta = np.append(float(hd5file[dset].attrs['tilt']), theta)
+            phi = np.append(float(hd5file[dset].attrs['pan']), phi)
+            rot = np.append(float(hd5file[dset].attrs['roll']), rot)
 
-        if r == rot and t == 0:
-            phi = phi + [t]
-            gain = gain + [g]
-            theta = theta + [p]
-
-
-    gain = sort_by_array(theta,gain)
-    phi = sort_by_array(theta,phi)
-    theta.sort()
-    return {'gain':gain, 'theta':theta, 'phi':phi}
+    pdb.set_trace()            
+#    gain = sort_by_array(theta,gain)
+#    phi = sort_by_array(theta,phi)
+#    theta.sort()
+    return {'gain':gain, 'theta':theta, 'phi':phi, 'rot':rot, 'mag':mag}
 
 # saves a csv of a radiation pattern
 # [ theta , gain] 

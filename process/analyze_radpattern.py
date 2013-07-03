@@ -1,6 +1,4 @@
-#ef_arraytest see  http://stackoverflow.com/questions/7819498/plotting-ellipsoid-with-matplotlib
-# see http://docs.enthought.com/mayavi/mayavi/mlab.html#
-
+# script to plot radiation pattern from anecohic chamber measurements 
 from data_processing import *
 import matplotlib.cm as cm
 import pdb
@@ -26,7 +24,7 @@ if __name__ == "__main__":
     xlabel('antenna pan (degrees)')
     ylabel('|S21| (dB)')
     title('measured |S21| of WLP.2450.25.4.A.02 at ' + str(TESTFREQ/1e18) + 'GHz with varying roll')
-    figure()
+#    figure()
     #subplot(4,2,2)
     
 #pans = range(-90,91,10)
