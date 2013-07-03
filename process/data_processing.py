@@ -3,15 +3,15 @@
 
 from hdf5_tools import *
 from pylab import  *
-from mlabwrap import mlab
-import h5py, csv, os, pdb
+#from mlabwrap import mlab
+import h5py, csv, os
 import pdb
 
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
 
-def get_radpattern(hd5file, subgroup, freq, rot):
+def get_radpattern(hd5file, subgroup, freq, rotslice):
     fidx = get_fidx(hd5file, freq)
 
     gain = np.array([])
@@ -21,15 +21,15 @@ def get_radpattern(hd5file, subgroup, freq, rot):
     rot = np.array([])
 
     for pos in hd5file[subgroup].keys():
-        if r == float(hd5file[dset].attrs['roll']):
-            dset = subgroup + '/' + pos
+        dset = subgroup + '/' + pos
+
+        if rotslice == int(hd5file[dset].attrs['roll']):
             gain = np.append(20*log10(abs(hd5file[dset][fidx])), gain)
             mag = np.append(hd5file[dset][fidx], mag)
             theta = np.append(float(hd5file[dset].attrs['tilt']), theta)
             phi = np.append(float(hd5file[dset].attrs['pan']), phi)
             rot = np.append(float(hd5file[dset].attrs['roll']), rot)
 
-    pdb.set_trace()            
 #    gain = sort_by_array(theta,gain)
 #    phi = sort_by_array(theta,phi)
 #    theta.sort()
@@ -54,9 +54,9 @@ def get_axialratio(hd5file, subgroup, freq, pan, tilt):
     mag = [abs(m) for m in slice['mag']]
     roll = [deg2rad(t) for t in slice['roll']]
 
-    mlab.addpath(os.getcwd()) # not a very smart way of doing this
+#    mlab.addpath(os.getcwd()) # not a very smart way of doing this
     
-    result = mlab.Polarization_Curve_Fit(mag, roll)
+#    result = mlab.Polarization_Curve_Fit(mag, roll)
     
     emax = result[0][0]
     gamma = result[0][1]
