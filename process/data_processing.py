@@ -11,7 +11,7 @@ def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
 
-def get_radpattern(hd5file, subgroup, freq, rotslice):
+def get_radpattern(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
 
     gain = np.array([])
@@ -23,12 +23,11 @@ def get_radpattern(hd5file, subgroup, freq, rotslice):
     for pos in hd5file[subgroup].keys():
         dset = subgroup + '/' + pos
 
-        if rotslice == int(hd5file[dset].attrs['roll']):
-            gain = np.append(20*log10(abs(hd5file[dset][fidx])), gain)
-            mag = np.append(hd5file[dset][fidx], mag)
-            theta = np.append(float(hd5file[dset].attrs['tilt']), theta)
-            phi = np.append(float(hd5file[dset].attrs['pan']), phi)
-            rot = np.append(float(hd5file[dset].attrs['roll']), rot)
+        gain = np.append(20*log10(abs(hd5file[dset][fidx])), gain)
+        mag = np.append(hd5file[dset][fidx], mag)
+        theta = np.append(float(hd5file[dset].attrs['pan']), theta)
+        phi = np.append(float(hd5file[dset].attrs['tilt']), phi)
+        rot = np.append(float(hd5file[dset].attrs['roll']), rot)
 
 #    gain = sort_by_array(theta,gain)
 #    phi = sort_by_array(theta,phi)
