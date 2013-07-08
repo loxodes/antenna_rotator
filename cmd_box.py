@@ -23,6 +23,7 @@ class RetroConsole(cmd.Cmd):
         example: rserial /dev/ttyUSB0
         '''
         self.rser = serial.Serial(line, BAUDRATE, timeout=TIMEOUT)
+        servo_reset(s)
 
     def do_freq(self, line):
         '''freq value

@@ -26,9 +26,9 @@ if __name__ == '__main__':
     
     h5f = h5py.File('elements_' +  ''.join(elements) + '' + str(time.time())[:-3] + HDF5_SUFFIX)  
     aser = serial.Serial(ARRAY_SERIALPORT, BAUDRATE, timeout=TIMEOUT)
-    sg = siggen_init()
-    sa = signal_analyzer_init()
-    scope = scope_init()
+    #sg = siggen_init()
+    #sa = signal_analyzer_init()
+    #scope = scope_init()
     vna = vna_init()
     
     #cable_calibrate(h5f, freqs, sa, sg)
@@ -40,23 +40,23 @@ if __name__ == '__main__':
     #raw_input('reconnect power jumper, then press enter to continue')
     #time.sleep(TRSTARTUP_DELAY)
     
-    for e in elements:
-        raw_input('connect element ' +  e + ' tx path to spectrum analyzer and signal generator, then press enter to continue')
-        standbycurrent = measure_avgcurrent(scope)
-        h5f.create_dataset(e + '/current_measurements/standbycurrent', data=standbycurrent)
+  #  for e in elements:
+        #raw_input('connect element ' +  e + ' tx path to spectrum analyzer and signal generator, then press enter to continue')
+        #standbycurrent = measure_avgcurrent(scope)
+        #h5f.create_dataset(e + '/current_measurements/standbycurrent', data=standbycurrent)
           
-        set_mode(aser, e, 'tx')
-        att_set(aser, e, 0)
+        #set_mode(aser, e, 'tx')
+        #att_set(aser, e, 0)
         
-        measure_lsgain(h5f, e + '/txpath', freqs, txpins, sa, sg, scope, cal_loss)
-        set_mode(aser, e, 'standby')
+        #measure_lsgain(h5f, e + '/txpath', freqs, txpins, sa, sg, scope, cal_loss)
+        #set_mode(aser, e, 'standby')
         
-        raw_input('connect rx path to spectrum analyzer and signal generator, then press enter to continue')
-        set_mode(aser, e, 'rx')
-        rxcurrent = measure_avgcurrent(scope)
-        h5f.create_dataset(e + '/current_measurements/rxcurrent', data=rxcurrent)
-        measure_lsgain(h5f, e + '/rxpath', freqs, rxpins, sa, sg, scope, cal_loss)
-        set_mode(aser, e, 'standby')
+        #raw_input('connect rx path to spectrum analyzer and signal generator, then press enter to continue')
+        #set_mode(aser, e, 'rx')
+        #rxcurrent = measure_avgcurrent(scope)
+       # h5f.create_dataset(e + '/current_measurements/rxcurrent', data=rxcurrent)
+        #measure_lsgain(h5f, e + '/rxpath', freqs, rxpins, sa, sg, scope, cal_loss)
+       # set_mode(aser, e, 'standby')
         
     for e in elements:
         raw_input('connect element ' + str(e) + ' transmit path to the VNA, apply calibration, then press enter to continue')

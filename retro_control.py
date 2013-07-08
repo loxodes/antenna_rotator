@@ -47,7 +47,7 @@ RS485_MAX_TRIES = 4
 COMMAND_DELAY = .1 # seconds
 HOST_ADDR = '\x07'
 
-ARRAY_CONFIG = ['e', 'f']
+ARRAY_CONFIG = [['h', 'g'],['e', 'f']]
 ARRAY_SPACING = .45 # wavelengths
 
 # STX CMD LEN PAYLOAD ETX
@@ -232,20 +232,16 @@ def set_mode(s, addr, mode):
     return r['k']
 
 # steers the array to az, el (degrees) (el is ignored)
-def array_steer(s, az, el = 0):
-    dphase = 360 * sin(deg2rad(int(az))) * ARRAY_SPACING;
+def array_steer(s, az, el):
+    azdphase = int(360 * sin(deg2rad(int(az))) * ARRAY_SPACING);
+    eldphase = int(360 * sin(deg2rad(int(el))) * ARRAY_SPACING);
     
     time.sleep(.15)
-
-    if(dphase > 0):
-        for i in range(len(ARRAY_CONFIG)):
-            phase_set(s, ARRAY_CONFIG[i], int(i * dphase))
-            time.sleep(.10)
-    else:
-        for i in range(len(ARRAY_CONFIG)):
-            phase_set(s, ARRAY_CONFIG[i], int((len(ARRAY_CONFIG) - i) * abs(dphase)))
-            time.sleep(.10)
     
+    for (i,row) in enumerate(ARRAY_CONFIG):
+        for (j, element) in enumerate(row):
+            phase_set(s, element, int(i * eldphase + j * azdphase) % 360)
+            time.sleep(.10)
 
     
 if __name__ == "__main__":
