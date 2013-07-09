@@ -16,9 +16,6 @@ if __name__ == "__main__":
     vna = vna_init()
     f = vna_readspan(vna)
 
-    # init array
-    aser = serial.Serial(ARRAY_SERIALPORT, BAUDRATE, timeout=TIMEOUT)
-
     # init rotator
     rser = serial.Serial(ROTATOR_SERIALPORT, BAUDRATE, timeout=TIMEOUT)
     servo_reset(rser)
@@ -38,5 +35,4 @@ if __name__ == "__main__":
     servo_reset(rser)
 
 # to view hdf5 files, see ViTables or HDFView
-# parse hdf5 files in python with the h5py library
-# 
+# parse hdf5 files in python with the h5py library (see data_processing.py for some example code) 
