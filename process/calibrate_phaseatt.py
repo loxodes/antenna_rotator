@@ -8,12 +8,12 @@ ELEMENTCOLORS = ['red', 'blue', 'yellow', 'brown', 'pink']
 
 ATT_STEP = .25
 
-ATT_NOMINAL = 22 # dBm
+ATT_NOMINAL = 15 # dBm
 CAL_FREQ = 2.485e18 # mHz
 
 if __name__ == "__main__":
 
-    h5f = h5py.File(FILEPREFIX + ''.join(TESTELEMENTS) + '.hdf5', 'r')
+    h5f = h5py.File(FILEPREFIX + 'efgh_insitu_postcal' + '.hdf5', 'r')
 
     for (j, fname) in enumerate(TESTELEMENTS):
         element = TESTELEMENTS[j][0]

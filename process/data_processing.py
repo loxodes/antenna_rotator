@@ -7,10 +7,11 @@ from pylab import  *
 import h5py, csv, os
 import pdb
 
+# convert a voltage to dB
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
-
+# dumps a 1d list of gain, magnitude, theta, phi, and rotation given a group and frequency
 def get_radpattern(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
 
@@ -29,12 +30,52 @@ def get_radpattern(hd5file, subgroup, freq):
         phi = np.append(float(hd5file[dset].attrs['tilt']), phi)
         rot = np.append(float(hd5file[dset].attrs['roll']), rot)
 
-#    gain = sort_by_array(theta,gain)
-#    phi = sort_by_array(theta,phi)
-#    theta.sort()
     return {'gain':gain, 'theta':theta, 'phi':phi, 'rot':rot, 'mag':mag}
 
-# saves a csv of a radiation pattern
+# converts the 1d gain and magnitude list into a 3d array as a function of theta, phi, and roll
+def get_radarray(pattern):
+    thetas = sort(list(set(pattern['theta'])))
+    rots = sort(list(set(pattern['rot'])))
+    phis = sort(list(set(pattern['phi'])))
+    
+    radarray_gain = np.zeros([len(thetas), len(phis), len(rots)])
+    radarray_mag = np.zeros([len(thetas), len(phis), len(rots)])
+
+    az = pattern['theta']
+    el = pattern['phi']
+    rot = pattern['rot']
+    gain = pattern['gain']
+    mag = pattern['mag']
+
+    for i in range(len(az)):
+        radarray_gain[numpy.where(thetas == az[i]),numpy.where(phis == el[i]),numpy.where(rots == rot[i])] = gain[i]
+        radarray_mag[numpy.where(thetas == az[i]),numpy.where(phis == el[i]),numpy.where(rots == rot[i])] = mag[i]
+
+    return {'radarray_gain':radarray_gain, 'radarray_mag':radarray_mag, 'thetas':thetas, 'phis':phis, 'rots':rots}
+
+# return 2d table of elevation/azimuth steering
+def get_steertable(hd5file):
+    azsteers = []
+    elsteers = []
+    for dset in hd5file.items():
+        if dset[0][0:5] == 'steer':
+            vnasweep = hd5file[dset[0] + '/' + hd5file[dset[0]].items()[0][0]]
+            elsteers.append(vnasweep.attrs['elsteer'])
+            azsteers.append(vnasweep.attrs['azsteer'])
+    
+    azsteers = sort(list(set(azsteers)))
+    elsteers = sort(list(set(elsteers)))
+    
+    return meshgrid(azsteers, elsteers)
+
+
+# gets the gain of the array compared to a single element
+def get_arraygain(hd5file, freq, omnielement):
+    # calculate maximum gain of element (?) 
+    return 0 
+    
+
+# saves a csv  f a radiation pattern
 # [ theta , gain] 
 def save_radpattern_csv(pattern, filename):
     with open(filename + '.csv', 'w') as csvfile:
@@ -102,12 +143,5 @@ def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
 
 
 if __name__ == '__main__':
-    h5f = h5py.File('e_only.hdf5')
-    freqs = get_freqs(h5f)
-    
-    ax = []
-    for f in freqs:
-        ax = ax + [get_axialratio(h5f, 'e/pattern_characterization', f, 0, 0)]
-
-    plot(freqs, ax)
-    show()
+    h5f = h5py.File('data/efgh_array.hdf5')
+    get_steertable(h5f)

@@ -4,12 +4,12 @@ import h5py
 from skrf import complex_2_degree
 
 FILEPREFIX = 'data/' 
-FILENAME = 'efgh_preant'
+FILENAME = 'efgh_array'
 TESTELEMENTS = ['e', 'f','g', 'h']#'h', 'e', 'f']
 ELEMENTCOLORS = ['red', 'blue', 'yellow', 'brown', 'pink']
 
 TESTFREQ = 2.485e18 # mHz
-FSWEEPLOC = 'vna_frequencysweep'
+FSWEEPLOC = 'frequencysweep'
 
 def get_phase(hd5file, element, freq, group = GROUP_PHASE):
     fidx = get_fidx(hd5file, freq, FSWEEPLOC)
@@ -81,8 +81,5 @@ if __name__ == "__main__":
         xlabel('phase shifter register value')
         ylabel('measured gain (dB)')
     
-
-        
     hd5file.close()
-
     show()
