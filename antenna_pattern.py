@@ -27,16 +27,16 @@ ROTATOR_SERIALPORT = 'COM9'
 BAUDRATE = 9600
 TIMEOUT = 1
 TX_STARTUP = .1
-PAN_STOPS = range(-80,81,10)
+PAN_STOPS = range(-90,91,10)
 TILT_STOPS = range(0, 70, 10)
-ROLL_STOPS = range(-180,181,15)
+ROLL_STOPS = range(-180,181,30)
 #PAN_STOPS = range(-10,11,10)
 #TILT_STOPS = range(0, 11, 10)
 #ROLL_STOPS = range(-180,181,180)
 #AZ_ARRAY_STEERS = range(-15,16,15)
 #EL_ARRAY_STEERS = range(-15,16,15)
-AZ_ARRAY_STEERS = range(-60,61,15)
-EL_ARRAY_STEERS = range(-60,61,15)
+AZ_ARRAY_STEERS = range(-80,81,20)
+EL_ARRAY_STEERS = range(-20,81,20)
 
 BASE_ATT = 0
 BASE_PHASE = 0
@@ -66,13 +66,14 @@ def sweep_elements(pans, tilts, rolls, hd5file, vna, elements, rser, aser, azste
                         print 'measuring steer az: ' + str(azs) + ' el: ' + str(els)
                         measure_sweep(hd5file, GROUP_STEER, vna, t, p, r, azs, els, elements, aser)
                     
-def sweep_antenna(pans, tilts, rolls, hd5file, vna):
+def sweep_antenna(pans, tilts, rolls, hd5file, vna, rser):
     for t in tilts:
         servo_setangle(rser, TILT_CHANNEL, t)
         for p in pans:
             servo_setangle(rser, PAN_CHANNEL, p)
             for r in rolls:
                 servo_setangle(rser, ROLL_CHANNEL, r)
+                print 'measuring pan ' + str(p) + ' tilt ' + str(t) + ' roll ' + str(r)
                 measure_antenna(hd5file, 'antenna_test', '', vna,  t, p, r)
 
 
@@ -192,7 +193,7 @@ if __name__ == "__main__":
 
     print 'characterizing phase and attenuation'
     # measure individual element phase and attenuation variations
-    #characterize_phaseatt(hd5file, vna, ELEMENTS, BASE_ATT, aser)
+    characterize_phaseatt(hd5file, vna, ELEMENTS, BASE_ATT, aser)
     
     print 'measuring antenna radiation pattern'
     # sweep each element, measure phase s21 at each stop
