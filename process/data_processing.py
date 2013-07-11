@@ -20,7 +20,7 @@ def get_radpattern(hd5file, subgroup, freq):
     theta = np.array([])
     mag = np.array([])
     rot = np.array([])
-
+    print subgroup 
     for pos in hd5file[subgroup].keys():
         dset = subgroup + '/' + pos
 
@@ -46,6 +46,10 @@ def get_radarray(pattern):
     rot = pattern['rot']
     gain = pattern['gain']
     mag = pattern['mag']
+    
+
+    # instead...
+    # get axial ratio and equivalent received path loss by a perfect circularlly polarized antenna
 
     for i in range(len(az)):
         radarray_gain[numpy.where(thetas == az[i]),numpy.where(phis == el[i]),numpy.where(rots == rot[i])] = gain[i]
@@ -60,22 +64,33 @@ def get_steertable(hd5file):
     for dset in hd5file.items():
         if dset[0][0:5] == 'steer':
             vnasweep = hd5file[dset[0] + '/' + hd5file[dset[0]].items()[0][0]]
-            elsteers.append(vnasweep.attrs['elsteer'])
-            azsteers.append(vnasweep.attrs['azsteer'])
+            elsteers.append(int(vnasweep.attrs['elsteer']))
+            azsteers.append(int(vnasweep.attrs['azsteer']))
     
     azsteers = sort(list(set(azsteers)))
     elsteers = sort(list(set(elsteers)))
-    
     return meshgrid(azsteers, elsteers)
 
 
 # gets the gain of the array compared to a single element
-def get_arraygain(hd5file, freq, omnielement):
-    # calculate maximum gain of element (?) 
-    return 0 
+def get_arraygain(hd5file, freq, omnielement, azrange, elrange):
+    omnipattern = get_radarray(get_radpattern(hd5file, omnielement, freq))
+   
+    arraygain = zeros([len(elrange), len(azrange)])
+
+    for (i,az) in enumerate(azrange):
+        for (j,el) in enumerate(elrange): 
+            array = get_radarray(get_radpattern(hd5file, 'steeraz' + str(az) + 'el' + str(el), freq))
+            
+            azidx = numpy.where(array['thetas'] == az)[0][0]
+            elidx = numpy.where(array['phis'] == el)[0][0]
+            
+            arraygain[j,i] = max(array['radarray_gain'][azidx,elidx]) - max(omnipattern['radarray_gain'][azidx, elidx])
+
+    return arraygain
     
 
-# saves a csv  f a radiation pattern
+# saves a csv of a radiation pattern
 # [ theta , gain] 
 def save_radpattern_csv(pattern, filename):
     with open(filename + '.csv', 'w') as csvfile:
@@ -144,4 +159,5 @@ def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
 
 if __name__ == '__main__':
     h5f = h5py.File('data/efgh_array.hdf5')
-    get_steertable(h5f)
+    omnielement = 'g/pattern_characterization'
+    arraygain = get_arraygain(h5f, 2.485e18, omnielement, range(-60,61,20), range(0,61,20))
