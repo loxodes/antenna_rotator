@@ -6,7 +6,7 @@ import pdb
 from mpl_toolkits.mplot3d import Axes3D
 
 TESTFILE = 'data/efgh_array.hdf5'
-TESTELEMENT = 'steeraz0el0'#'e' + GROUP_RADPAT
+TESTELEMENT = 'steeraz60el40'#'e' + GROUP_RADPAT
 TESTFREQ = 2.485 * F_SCALE
 TESTROT = 0 
 

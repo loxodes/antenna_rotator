@@ -3,8 +3,9 @@
 
 from hdf5_tools import *
 from pylab import  *
+from ellipse_tools import *
 #from mlabwrap import mlab
-import h5py, csv, os
+import h5py, csv, os, cmath
 import pdb
 
 # convert a voltage to dB
@@ -38,8 +39,8 @@ def get_radarray(pattern):
     rots = sort(list(set(pattern['rot'])))
     phis = sort(list(set(pattern['phi'])))
     
-    radarray_gain = np.zeros([len(thetas), len(phis), len(rots)])
-    radarray_mag = np.zeros([len(thetas), len(phis), len(rots)])
+    radarray_gain =  np.zeros([len(thetas), len(phis), len(rots)])
+    radarray_mag = (1j + 1) * np.zeros([len(thetas), len(phis), len(rots)])
 
     az = pattern['theta']
     el = pattern['phi']
@@ -72,10 +73,12 @@ def get_steertable(hd5file):
     return meshgrid(azsteers, elsteers)
 
 
-# gets the gain of the array compared to a single element
-def get_arraygain(hd5file, freq, omnielement, azrange, elrange):
-    omnipattern = get_radarray(get_radpattern(hd5file, omnielement, freq))
-   
+# gets the gain of the array compared to the average of all individual elements
+def get_arraygain(hd5file, freq, omnielements, azrange, elrange, elementprefix = '/pattern_characterization'):
+#    omni_radpattern = np.array([])
+    for e in omnielements:
+        omnipattern = get_radarray(get_radpattern(hd5file, e + elementprefix, freq))
+         
     arraygain = zeros([len(elrange), len(azrange)])
 
     for (i,az) in enumerate(azrange):
@@ -101,23 +104,17 @@ def save_radpattern_csv(pattern, filename):
             writer.writerow([theta, gain[i]])
 
 
-# calculate axial ratio using MATLAB script from Russel Carroll 
-def get_axialratio(hd5file, subgroup, freq, pan, tilt):
-    fidx = get_fidx(hd5file, freq)
-    slice = get_magphase_roll(hd5file, subgroup, freq, pan, tilt)
+# calculate axial ratio
+def get_axialratio(roll, mag):
+    mag = [abs(m) for m in mag] 
+    roll = [deg2rad(r) for r in roll] 
     
-    mag = [abs(m) for m in slice['mag']]
-    roll = [deg2rad(t) for t in slice['roll']]
+    points = [cmath.rect(mag[i], roll[i]) for i in range(len(roll))]
 
-#    mlab.addpath(os.getcwd()) # not a very smart way of doing this
-    
-#    result = mlab.Polarization_Curve_Fit(mag, roll)
-    
-    emax = result[0][0]
-    gamma = result[0][1]
-    phi = result[0][2]
+    a = fit_ellipse(real(points), imag(points))
+    axis_lengths = ellipse_axis_length(a)
 
-    return -20*log10(gamma)
+    return abs(20 * log10(axis_lengths[0] / axis_lengths[1]))
 
 def get_magphase_pan(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
@@ -159,5 +156,5 @@ def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
 
 if __name__ == '__main__':
     h5f = h5py.File('data/efgh_array.hdf5')
-    omnielement = 'g/pattern_characterization'
+    omnielement = ['e']#, 'f', 'g', 'h']
     arraygain = get_arraygain(h5f, 2.485e18, omnielement, range(-60,61,20), range(0,61,20))
