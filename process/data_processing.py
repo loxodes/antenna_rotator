@@ -11,6 +11,13 @@ import pdb
 def re_to_db(array):
     return [20 * log10(abs(v)) for v in array]
 
+def db_to_re(array, mult=20):
+    v = np.vectorize(_db_to_re)
+    return v(array)
+
+def _db_to_re(v, mult=20):
+    return pow(10, v/mult)
+
 # dumps a 1d list of gain, magnitude, theta, phi, and rotation given a group and frequency
 def get_radpattern(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
@@ -161,12 +168,12 @@ def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
 
     return {'mag':mag, 'roll':roll}
 
-
-
 if __name__ == '__main__':
     h5f = h5py.File('data/efgh_array.hdf5')
-
     omnielements = ['e', 'f', 'g', 'h']
+    arraygains = []
     for e in omnielements:
-        arraygain = get_arraygain(h5f, 2.485e18, e, range(-60,61,20), range(0,61,20))
-
+        arraygains = arraygains + [db_to_re(get_arraygain(h5f, 2.485e18, e, range(-60,61,20), range(0,61,20)))]
+    
+    gain_avg = 20*log10((arraygains[0] + arraygains[1] + arraygains[2] + arraygains[3])/4) # THIS IS NOT A GOOD WAY OF DOING THIS... 
+    print gain_avg
