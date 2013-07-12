@@ -32,6 +32,7 @@ def get_radpattern(hd5file, subgroup, freq):
 
     return {'gain':gain, 'theta':theta, 'phi':phi, 'rot':rot, 'mag':mag}
 
+
 # converts the 1d gain and magnitude list into a 3d array as a function of theta, phi, and roll
 def get_radarray(pattern):
     thetas = sort(list(set(pattern['theta'])))
@@ -73,11 +74,8 @@ def get_steertable(hd5file):
 
 
 # gets the gain of the array compared to the average of all individual elements
-def get_arraygain(hd5file, freq, omnielements, azrange, elrange, elementprefix = '/pattern_characterization'):
-#    omni_radpattern = np.array([])
-    for e in omnielements:
-        omnipattern = get_radarray(get_radpattern(hd5file, e + elementprefix, freq))
-         
+def get_arraygain(hd5file, freq, omnielement, azrange, elrange, elementprefix = '/pattern_characterization'):
+    omnipattern = get_radarray(get_radpattern(hd5file, omnielement + elementprefix, freq))
     arraygain = zeros([len(elrange), len(azrange)])
 
     for (i,az) in enumerate(azrange):
@@ -86,9 +84,9 @@ def get_arraygain(hd5file, freq, omnielements, azrange, elrange, elementprefix =
             
             azidx = numpy.where(array['thetas'] == az)[0][0]
             elidx = numpy.where(array['phis'] == el)[0][0]
-            
-            arraygain[j,i] = max(array['radarray_gain'][azidx,elidx]) - max(omnipattern['radarray_gain'][azidx, elidx])
-
+            ax_array = get_axialratio(array['rots'], array['radarray_mag'][azidx,elidx])
+            ax_omni = get_axialratio(omnipattern['rots'], omnipattern['radarray_mag'][azidx,elidx])
+            arraygain[j,i] = ax_array['directivity'] - ax_omni['directivity']
     return arraygain
     
 
@@ -103,7 +101,7 @@ def save_radpattern_csv(pattern, filename):
             writer.writerow([theta, gain[i]])
 
 
-# calculate axial ratio
+# calculate axial ratio and recieved power by 
 def get_axialratio(roll, mag):
     mag = [abs(m) for m in mag] 
     roll = [deg2rad(r) for r in roll] 
@@ -112,8 +110,19 @@ def get_axialratio(roll, mag):
 
     a = fit_ellipse(real(points), imag(points))
     axis_lengths = ellipse_axis_length(a)
+    
+    axialratio = abs(20 * log10(axis_lengths[0] / axis_lengths[1]))
+    directivity = 20 * log10(axis_lengths[0] + axis_lengths[1]) + get_mismatch_loss(axialratio)
+    return {'axialratio':axialratio, 'directivity':directivity}
 
-    return abs(20 * log10(axis_lengths[0] / axis_lengths[1]))
+def get_mismatch_loss(axialratio):
+    # axialratio is in dB
+    # calculate mismatch loss from a circularly polarized antenna
+    # see polarization mismatch loss equation from: http://www.cobham.com/media/83787/805-1.pdf 
+    yc = 1
+    ye = pow(10, axialratio / 20) 
+    mismatch_loss = 10 * log10(.5 + .5 * (yc * ye / (1 + ye * ye)))
+    return mismatch_loss
 
 def get_magphase_pan(hd5file, subgroup, freq):
     fidx = get_fidx(hd5file, freq)
@@ -153,7 +162,11 @@ def get_magphase_roll(hd5file, subgroup, freq, pan, tilt):
     return {'mag':mag, 'roll':roll}
 
 
+
 if __name__ == '__main__':
     h5f = h5py.File('data/efgh_array.hdf5')
-    omnielement = ['e']#, 'f', 'g', 'h']
-    arraygain = get_arraygain(h5f, 2.485e18, omnielement, range(-60,61,20), range(0,61,20))
+
+    omnielements = ['e', 'f', 'g', 'h']
+    for e in omnielements:
+        arraygain = get_arraygain(h5f, 2.485e18, e, range(-60,61,20), range(0,61,20))
+

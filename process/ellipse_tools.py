@@ -1,5 +1,6 @@
 # functions for dealing fitting and computing information about ellipses
 # from Nicky van Foreest's website, http://nicky.vanforeest.com/misc/fitEllipse/fitEllipse.html
+from pylab import *
 
 def ellipse_plot(x, y):
     x = x[:-1]
