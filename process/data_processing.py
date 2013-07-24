@@ -128,7 +128,7 @@ def get_mismatch_loss(axialratio):
     # see polarization mismatch loss equation from: http://www.cobham.com/media/83787/805-1.pdf 
     yc = 1
     ye = pow(10, axialratio / 20) 
-    mismatch_loss = 10 * log10(.5 + .5 * (yc * ye / (1 + ye * ye)))
+    mismatch_loss = 10 * log10(.5 + .5 * ((2 * yc * ye) / (1 + ye * ye)))
     return mismatch_loss
 
 def get_magphase_pan(hd5file, subgroup, freq):
