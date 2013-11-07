@@ -3,7 +3,9 @@
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.cm as cm
-#from mayavi import mlab
+from mayavi import mlab
+from data_processing import *
+import pdb
 
 def plot_radarraysurf(pattern):
     fig = figure()
@@ -23,12 +25,6 @@ def plot_radarraysurf(pattern):
     phi = deg2rad(phi_mat)
     theta = deg2rad(theta_mat)
 
-
-#x = r*sin(phi)*cos(theta)
-#    y = r*cos(phi)
-#    z = r*sin(phi)*sin(theta)
-#
-#   s = mlab.mesh(x, y, z)
     surf = ax.plot_surface(theta_mat, phi_mat, (pattern_maxgain).transpose(), rstride=1, cstride=1, cmap=cm.coolwarm)
     
     ax.set_xlabel('antenna azimuth (degrees from boresight)')
@@ -39,3 +35,53 @@ def plot_radarraysurf(pattern):
 
     show()
     return ax
+
+def plot_arrayslices(pattern, offset = 0, dash = '-'):
+    thetas = pattern['thetas']
+    phis = pattern['phis']
+    pattern_maxgain = np.zeros([len(thetas), len(phis)])
+    pattern_axialratio = np.zeros([len(thetas), len(phis)])
+
+    
+    for i in range(len(thetas)):
+        for j in range(len(phis)):
+            if sum(pattern['radarray_gain'][i,j,:]) != 0:
+                pattern_maxgain[i,j] = get_axialratio(pattern['rots'],pattern['radarray_mag'][i,j,:])['directivity'] + offset
+ 
+    radpat = pattern_maxgain.transpose()
+    for el in range(len(phis)):
+        plot(thetas, radpat[el,:], dash)
+
+    legend(phis, title='Elevation Angle\nOffset (degrees)')
+
+
+def plot_radarray_polar(pattern):
+    # attempt to use mayavi to generate polar plot of radiation pattern slice
+    fig = figure()
+    
+    thetas = pattern['thetas']
+    phis = pattern['phis']
+    pattern_maxgain = np.zeros([len(thetas), len(phis)])
+    pattern_axialratio = np.zeros([len(thetas), len(phis)])
+
+    for i in range(len(thetas)):
+        for j in range(len(phis)):
+            pattern_maxgain[i,j] = max(pattern['radarray_gain'][i,j,:])
+    
+    theta_mat, phi_mat = meshgrid(thetas,phis)
+
+    r = pattern_maxgain.transpose()
+    phi = deg2rad(phi_mat)
+    theta = deg2rad(theta_mat)
+
+
+    x = r*sin(phi)*cos(theta)
+    y = r*cos(phi)
+    z = r*sin(phi)*sin(theta)
+
+    s = mlab.mesh(x, y, z)
+   
+    show()
+    return ax
+
+

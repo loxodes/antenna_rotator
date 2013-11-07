@@ -1,6 +1,5 @@
 import h5py
 import numpy
-
 GROUP_ATT = '/att_characterization'
 GROUP_PHASE = '/phase_characterization'
 GROUP_RADPAT = '/pattern_characterization'

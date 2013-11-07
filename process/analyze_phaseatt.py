@@ -11,8 +11,8 @@ ELEMENTCOLORS = ['red', 'blue', 'yellow', 'brown', 'pink']
 TESTFREQ = 2.485e18 # mHz
 FSWEEPLOC = 'frequencysweep'
 
-def get_phase(hd5file, element, freq, group = GROUP_PHASE):
-    fidx = get_fidx(hd5file, freq, FSWEEPLOC)
+def get_phase(hd5file, element, freq, group = GROUP_PHASE, fsweeploc=FSWEEPLOC):
+    fidx = get_fidx(hd5file, freq, fsweeploc)
     
     phase_target = []
     phase_measured = []
@@ -30,8 +30,8 @@ def get_phase(hd5file, element, freq, group = GROUP_PHASE):
 
     return {'phase_measured':phase_measured, 'phase_target':phase_target, 'att_measured':att_measured} 
 
-def get_att(hd5file, element, freq, group = GROUP_ATT):
-    fidx = get_fidx(hd5file, freq, FSWEEPLOC) 
+def get_att(hd5file, element, freq, group = GROUP_ATT, fsweeploc=FSWEEPLOC):
+    fidx = get_fidx(hd5file, freq, fsweeploc) 
     
     att_target = []
     att_measured = []
