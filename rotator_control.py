@@ -5,6 +5,7 @@
 # see users guide for controller at: http://www.pololu.com/docs/0J40
 from __future__ import division
 import serial, time
+import argparse
 
 # command             value    arguements 
 CMD_ROT_GET_POS     = '\x90' # [CHANNEL]
@@ -93,10 +94,10 @@ def servo_getstate(s):
     return s.read(1)
 
 # reset servos to "home" position
-def servo_reset(s):
-    servo_setspeed(s, ROLL_CHANNEL, 10)
-    servo_setspeed(s, PAN_CHANNEL, 10)
-    servo_setspeed(s, TILT_CHANNEL, 10)
+def servo_reset(s, speed = 10):
+    servo_setspeed(s, ROLL_CHANNEL, speed)
+    servo_setspeed(s, PAN_CHANNEL, speed)
+    servo_setspeed(s, TILT_CHANNEL, speed)
     servo_setorientation(s, 0, 0,0)
 
 # commands servo controller to stop sending pulses 
@@ -111,5 +112,32 @@ def servo_readerrors(s):
   
 
 if __name__ == '__main__':
-    s = serial.Serial('COM9', 9600, timeout = 1)
-    servo_reset(s)
+    parser = argparse.ArguementParser()
+
+    parser.add_arguement('--accel', help='set servo acceleration', default=10)
+    parser.add_arguement('--reset', help='reset servos', action='store_true')
+    
+    parser.add_arguement('--serialport', help='serial port with servo controller', default = 'COM9')
+    
+    parser.add_arguement('--az', help='set azimuth angle', default = 0)
+    parser.add_arguement('--el', help='set elevation (tilt) angle', default = 0)
+    parser.add_arguement('--roll', help='set roll angle', default = 0)
+
+    parser.add_arguement('--azcenter', help='pulse length to center servo on the azimuth axis', default = SERVO_CENTER[PAN_CHANNEL])
+    parser.add_arguement('--elcenter', help='pulse length to center servo on the elevation angle axis', default = SERVO_CENTER[TILT_CHANNEL])
+    parser.add_arguement('--rollcenter', help='pulse length to center cervo on the roll axis', default = SERVO_CENTER[ROLL_CHANNEL])
+
+    args = parser.parse_args()
+
+    SERVO_CENTER[TILT_CHANNEL] = args.elcenter
+    SERVO_CENTER[PAN_CHANNEL] = args.azcenter 
+    SERVO_CENTER[ROLL_CHANNEL] = args.rollcenter 
+
+    s = serial.Serial(args.serialport, 9600, timeout = 1)
+
+    if args.reset:
+        servo_reset(s, args.accel)
+    
+    servo_setorientation(s, args.az, args.el, args.roll)
+
+    s.close()
