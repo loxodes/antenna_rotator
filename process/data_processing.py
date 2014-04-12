@@ -8,7 +8,7 @@ import h5py, csv, os, cmath
 import pdb
 
 def prettyify():
-    matplotlib.rcParams.update({'font.size': 22})
+    matplotlib.rcParams.update({'font.size': 23})
     matplotlib.rcParams.update({'font.weight': 'bold'})
     matplotlib.rcParams.update({'legend.loc': 'best'})
     grid(True)
@@ -108,7 +108,7 @@ def get_rottable(hd5file):
 
 
 # gets the gain of the array compared to the average of all individual elements
-def get_arraygain(hd5file_array, hd5file_omni, freq, omnielement, azrange, elrange, elementprefix = '/pattern_characterization'):
+def get_arraygain(hd5file_array, hd5file_omni, freq, omnielement, azrange, elrange, elementprefix = '/pattern_characterization', gain = 1):
     omnipattern = get_radarray(get_radpattern(hd5file_omni, omnielement + elementprefix, freq))
     arraygain = zeros([len(elrange), len(azrange)])
 
@@ -125,7 +125,7 @@ def get_arraygain(hd5file_array, hd5file_omni, freq, omnielement, azrange, elran
             ax_array = get_axialratio(array['rots'], array['radarray_mag'][azidx_array,elidx_array])
             ax_omni = get_axialratio(omnipattern['rots'], omnipattern['radarray_mag'][azidx_omni,elidx_omni])
 
-            arraygain[j,i] = ax_array['directivity'] - ax_omni['directivity'] 
+            arraygain[j,i] = ax_array['directivity'] - ax_omni['directivity']  * gain
     return arraygain
 
 # shifts a complex magnitude by phase radians 
@@ -172,6 +172,49 @@ def calc_arraygain(hd5file_omni, freq, omnielement, azrange, elrange, rotrange, 
                 arraypattern[j,i,k] = amag
             arrayrhcp[j,i] = get_axialratio(rotrange,arraypattern[j,i,:])['directivity'] + offset 
     return {'radarray_mag':arraypattern, 'thetas':azrange, 'phis':elrange, 'rots':rotrange,'rhcppattern':arrayrhcp}
+
+# calculates the expected radiation pattern of an array using the measured pattern from one element 
+def calc_maxarraygain(hd5file_omni, freq, omnielement, azrange, elrange, rotrange, azsteer, elsteer, offset, dx = .47, dy = .47, N=2, M=2, elementprefix = '/pattern_characterization'):
+    # create array of S21 magnitude [el, az, roll]
+    omnipattern = get_radarray(get_radpattern(hd5file_omni, omnielement, freq))
+    omnimag = (1 + 1j) * zeros([len(elrange), len(azrange), len(rotrange)])
+    for (i,az) in enumerate(azrange):
+        for (j,el) in enumerate(elrange):
+            for(k, rot) in enumerate(rotrange):
+                    azidx_omni = numpy.where(omnipattern['thetas'] == az)[0][0]
+                    elidx_omni = numpy.where(omnipattern['phis'] == el)[0][0]
+                    rotidx_omni = numpy.where(omnipattern['rots'] == rot)[0][0]
+                    omnimag[j,i,k] = omnipattern['radarray_mag'][azidx_omni,elidx_omni,rotidx_omni]
+    
+    # create an array with the sum of the complex magnitude for each element
+    l = 3e8 / (freq/1e9)
+    arraypattern = (1 + 1j) * zeros([len(elrange), len(azrange), len(rotrange)])
+    arrayrhcp  = (1 + 1j) * zeros([len(elrange), len(azrange)])
+    for (i,az) in enumerate(azrange):
+        for (j,el) in enumerate(elrange):
+            dazphase = 2 * pi * sin(deg2rad(-az)) * (dx)
+            delphase = 2 * pi * sin(deg2rad(-el)) * (dy) 
+
+            for(k, rot) in enumerate(rotrange):
+                cmag = omnimag[j,i,k]
+                amag = 0
+
+                # add phase shift for steering
+                for n in range(N):
+                    for m in range(M):
+                        azweight = n * 2 * pi * sin(deg2rad(az)) * (dx)
+                        elweight = m * 2 * pi * sin(deg2rad(el)) * (dy)
+                        tmag = shift_mag(cmag, m * delphase + n * dazphase + azweight + elweight)
+                        amag += tmag
+
+                arraypattern[j,i,k] = amag
+            arrayrhcp[j,i] = get_axialratio(rotrange,arraypattern[j,i,:])['directivity'] + offset 
+    return {'radarray_mag':arraypattern, 'thetas':azrange, 'phis':elrange, 'rots':rotrange,'rhcppattern':arrayrhcp}
+
+
+# calculates path loss adjustment between a single element and a N by M element array to compensate for increased transmit power and element overhead
+def calc_dploss(N, M, Ptot, Pelem):
+    return 10 * log10(N * M) - 10 * log10((Ptot - (N * M) * Pelem)/Ptot)
 
 # saves a csv of a radiation pattern
 # [ theta , gain] 

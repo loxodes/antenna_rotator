@@ -7,6 +7,8 @@ from mayavi import mlab
 from data_processing import *
 import pdb
 
+COLORS = ['red', 'blue', 'purple', 'brown']
+
 def plot_radarraysurf(pattern):
     fig = figure()
     ax = Axes3D(fig) 
@@ -36,7 +38,7 @@ def plot_radarraysurf(pattern):
     show()
     return ax
 
-def plot_arrayslices(pattern, offset = 0, dash = '-'):
+def plot_arrayslices(pattern, offset = 0, dash = '-', elsteers = [0,3,6]):
     thetas = pattern['thetas']
     phis = pattern['phis']
     pattern_maxgain = np.zeros([len(thetas), len(phis)])
@@ -45,14 +47,14 @@ def plot_arrayslices(pattern, offset = 0, dash = '-'):
     
     for i in range(len(thetas)):
         for j in range(len(phis)):
-            if sum(pattern['radarray_gain'][i,j,:]) != 0:
-                pattern_maxgain[i,j] = get_axialratio(pattern['rots'],pattern['radarray_mag'][i,j,:])['directivity'] + offset
- 
+#            if sum(pattern['radarray_gain'][i,j,:]) != 0:
+            pattern_maxgain[i,j] = get_axialratio(pattern['rots'],pattern['radarray_mag'][i,j,:])['directivity'] + offset
+     
     radpat = pattern_maxgain.transpose()
-    for el in range(len(phis)):
-        plot(thetas, radpat[el,:], dash)
+    for (i,el) in enumerate(elsteers):
+        plot(thetas, radpat[el,:], dash, linewidth=3, color=COLORS[i])
 
-    legend(phis, title='Elevation Angle\nOffset (degrees)')
+#    legend(elsteers, title='Elevation Angle\nOrientation (degrees)',fancybox=True)
 
 
 def plot_radarray_polar(pattern):

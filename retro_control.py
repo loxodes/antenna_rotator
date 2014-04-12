@@ -55,7 +55,7 @@ def cmd_send(s, taddr, cmd, payload = ''):
     i = 0
 
     while(True):
-        i = i + 1;
+        i = i + 1
         s.flushInput()
 
         command = ETX + ETX + ENQ + short_pack(ord(taddr)) + RS + short_pack(ord(HOST_ADDR)) + STX + SOH + cmd + chr(len(payload)) + payload + ETX
@@ -233,8 +233,8 @@ def set_mode(s, addr, mode):
 
 # steers the array to az, el (degrees) (el is ignored)
 def array_steer(s, az, el):
-    azdphase = int(360 * sin(deg2rad(int(az))) * ARRAY_SPACING);
-    eldphase = int(360 * sin(deg2rad(int(el))) * ARRAY_SPACING);
+    azdphase = int(360 * sin(deg2rad(int(az))) * ARRAY_SPACING)
+    eldphase = int(360 * sin(deg2rad(int(el))) * ARRAY_SPACING)
     
     time.sleep(.15)
     
